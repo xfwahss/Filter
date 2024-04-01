@@ -1,7 +1,8 @@
 #ifndef KALMAN_FILTER_H
 #define KALMAN_FILTER_H
-#include "../third_party/eigen/Eigen/Dense"
+#include<Eigen/Dense>
 #include<iostream>
+#include"FilterIO.h"
 
 class KalmanFilter {
 public:
@@ -17,6 +18,7 @@ public:
     Eigen::VectorXd get_state() const;
     Eigen::MatrixXd get_covariance() const;
     void batch_filter(const int &counts, const double* measurements);
+    void batch_filter(FilterIO& measurements);
 
 private:
     const int dim_state;

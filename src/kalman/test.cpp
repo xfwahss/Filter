@@ -1,4 +1,5 @@
 #include "KalmanFilter.h"
+#include "MatFileIO.h"
 #include <iostream>
 
 int main() {
@@ -20,6 +21,7 @@ int main() {
     R << 1;   // 测量噪声较大
     B << 0;
     u << 0;
+    R << 1;
 
     KalmanFilter kf(2, 1);
     kf.init(x, P, F, Q, B, u, H, R);
