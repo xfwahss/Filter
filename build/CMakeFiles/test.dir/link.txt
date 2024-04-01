@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/test.dir/test/test.cpp.o -o bin/test  -Wl,-rpath,/home/work/kalman-filter/build/lib lib/libkalman.so 
