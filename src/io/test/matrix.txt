@@ -1,0 +1,62 @@
+# init state, the column vector read as a row
+vector x  6
+1  2  3  4  5  6
+
+# covariance matrix
+matrix P  6   6
+1.0  1   1   1   1   1
+1  1   1   1   1   1
+1  1   1   1   1   1
+1   1   1   1   1   1
+1  1   1    1   1   1
+1  1   1    1   1   1
+
+
+# transitive matrix
+matrix F 6 6
+1 1 1 2 3 4
+1 1 1 2 3 4
+1 1 1 2 3 4
+1 1 1 2 3 4
+1 1 1 2 3 4
+1 1 1 2 3 4
+
+# force matrix
+matrix B 6 3
+1 2 3
+1 2 3
+1 2 3
+1 2 3
+1 2 3
+1 2 3
+
+# observe matrix
+matrix H 6 6
+1  1   1  1   1  1
+1  1   1  1   1  1
+1  1   1  1   1  1
+1  1   1  1   1  1
+1  1   1  1   1  1
+1  1   1  1   1  1
+
+# process noise
+matrix Q  6  6   
+1 2 3 5 5 5
+1 2 3 5 5 5
+1 2 3 5 5 5
+1 2 3 5 5 5
+1 2 3 5 5 5
+1 2 3 5 5 5
+
+# observe noise
+matrix R 6 6
+1 1 1 1 1 1
+1 1 1 1 1 1
+1 1 1 1 2 1
+1 1 1 1 1 1
+1 1 1 1 1 1
+1 1 1 1 1 1
+
+# force variable
+vector u 7
+1  1  1  0 0  1  1

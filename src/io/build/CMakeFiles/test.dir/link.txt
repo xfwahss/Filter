@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/test.dir/test/main.cc.o -o bin/test  -Wl,-rpath,/home/work/kalman-filter/src/io/build/lib lib/libfileio.so 
