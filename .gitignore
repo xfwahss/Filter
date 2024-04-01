@@ -6,3 +6,5 @@
 *.idb
 *.pdb
 *.swap
+/build
+/src/io/build
