@@ -1,4 +1,0 @@
-/home/work/kalman-filter/build/CMakeFiles/kalman.dir
-/home/work/kalman-filter/build/CMakeFiles/test.dir
-/home/work/kalman-filter/build/CMakeFiles/edit_cache.dir
-/home/work/kalman-filter/build/CMakeFiles/rebuild_cache.dir

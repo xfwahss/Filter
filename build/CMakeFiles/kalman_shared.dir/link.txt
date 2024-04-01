@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -g -shared -Wl,-soname,libkalman_shared.so -o lib/libkalman_shared.so CMakeFiles/kalman_shared.dir/kalman/KalmanFilter.cpp.o 

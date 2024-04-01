@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -g -shared -Wl,-soname,libkalman.so -o lib/libkalman.so CMakeFiles/kalman.dir/kalman/FilterIO.cpp.o CMakeFiles/kalman.dir/kalman/KalmanFilter.cpp.o CMakeFiles/kalman.dir/kalman/test.cpp.o CMakeFiles/kalman.dir/io/src/FileIO.cc.o CMakeFiles/kalman.dir/io/src/InitState.cc.o CMakeFiles/kalman.dir/io/src/MatFileIO.cc.o 

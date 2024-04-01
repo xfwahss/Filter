@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -g -shared -Wl,-soname,libfileio.so -o lib/libfileio.so CMakeFiles/fileio.dir/src/FileIO.cc.o CMakeFiles/fileio.dir/src/InitState.cc.o CMakeFiles/fileio.dir/src/MatFileIO.cc.o 
