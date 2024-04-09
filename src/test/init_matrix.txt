@@ -1,31 +1,35 @@
 # init state, the column vector read as a row
-vector x  1
-2.5
+vector x  2
+10  4.5
 
 # covariance matrix
-matrix P  1 1
-10
+matrix P  2 2
+500 0
+0 49
 
 
 # transitive matrix
-matrix F 1 1
-1
+matrix F 2 2
+1  1
+0  1
 
 # force matrix
-matrix B 1 1
+matrix B 2 1
+0
 0
 
 # observe matrix
-matrix H 1 1
-1
+matrix H 1 2
+1 0
 
 # process noise
-matrix Q  1  1   
-0.05
+matrix Q  2  2   
+1  0
+0  1
 
 # observe noise
 matrix R 1 1
-1
+0.01
 
 # force variable
 vector u 1
