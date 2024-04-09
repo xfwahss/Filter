@@ -1,3 +1,5 @@
+#ifndef FILE_IO_H
+#define FILE_IO_H
 #include <string>
 class FileIO {
   private:
@@ -12,3 +14,4 @@ class FileIO {
     virtual void read() = 0;
     virtual void write() = 0;
 };
+#endif
