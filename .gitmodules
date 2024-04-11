@@ -2,3 +2,7 @@
 	path = src/third_party/eigen
 	url = https://gitlab.com/libeigen/eigen
 	branch = master
+[submodule "src/third_party/o2sci"]
+	path = src/third_party/o2sci
+	url = https://github.com/awsteiner/o2scl.git
+	branch = main
