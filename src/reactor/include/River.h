@@ -2,9 +2,9 @@
 #define RIVER_H
 #include <fstream>
 #include <string>
+#include "../../io/include/RiverFileIO.h"
 class River {
   private:
-    int time_step;
     double flow;
     double c_no;
     double c_na;
@@ -12,12 +12,13 @@ class River {
     double load_organic;
     double load_ammonia;
     double load_nitrate;
-    std::ifstream file;
+    RiverFileIO file;
 
   public:
-    River(const int &time_step, const std::string filename);
+    River(const std::string& filename);
     ~River();
-    void read_one();
+    // 返回true说明产生了新的数据
+    bool flush();
     double get_flow();
     double get_load_organic();
     double get_load_ammonia();
