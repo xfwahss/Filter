@@ -14,9 +14,9 @@ void Reservoir::init(const double &wl, const double &c_no, const double &c_na,
     current_rivervars = temp;
 }
 
-void Reservoir::add_river_in(River &river) { rivers_in.push_back(river); }
+void Reservoir::add_river_in(River *river) { rivers_in.push_back(river); }
 
-void Reservoir::add_river_out(River &river) { rivers_out.push_back(river); }
+void Reservoir::add_river_out(River *river) { rivers_out.push_back(river); }
 
 double Reservoir::wl_to_volumn() {
     return 0.0228 * status.wl * status.wl - 5.3301 * status.wl + 313.6498;
@@ -26,19 +26,19 @@ input_output_var Reservoir::get_next_rivervars() {
     input_output_var next(0, 0, 0, 0, 0, 0, 0, 0);
     for (int i = 0; i < rivers_in.size(); i++) {
         // 河流读取下一时间步信息
-        rivers_in[i].flush();
-        next.flow_in += rivers_in[i].get_flow();
-        next.load_organic_in += rivers_in[i].get_load_organic();
-        next.load_ammonia_in += rivers_in[i].get_load_ammonia();
-        next.load_nitrate_in += rivers_in[i].get_load_nitrate();
+        rivers_in[i]->flush();
+        next.flow_in += rivers_in[i]->get_flow();
+        next.load_organic_in += rivers_in[i]->get_load_organic();
+        next.load_ammonia_in += rivers_in[i]->get_load_ammonia();
+        next.load_nitrate_in += rivers_in[i]->get_load_nitrate();
     };
     for (int j = 0; j < rivers_out.size(); j++) {
         // 河流读取下一步
-        rivers_in[j].flush();
-        next.flow_out += rivers_out[j].get_flow();
-        next.load_organic_out += rivers_out[j].get_load_organic();
-        next.load_ammonia_out += rivers_out[j].get_load_ammonia();
-        next.load_nitrate_out += rivers_out[j].get_load_nitrate();
+        rivers_out[j]->flush();
+        next.flow_out += rivers_out[j]->get_flow();
+        next.load_organic_out += rivers_out[j]->get_load_organic();
+        next.load_ammonia_out += rivers_out[j]->get_load_ammonia();
+        next.load_nitrate_out += rivers_out[j]->get_load_nitrate();
     };
     current_rivervars = next;
     return next;
@@ -72,9 +72,9 @@ double Reservoir::predict_volumn(const double &dt) {
     return next_volumn;
 }
 
-double Reservoir::predict_organic(const double &dt) {}
-double Reservoir::predict_ammonia(const double &dt) {}
-double Reservoir::predict_nitrate(const double &dt) {}
+double Reservoir::predict_organic(const double &dt) {return 0;}
+double Reservoir::predict_ammonia(const double &dt) {return 0;}
+double Reservoir::predict_nitrate(const double &dt) {return 0;}
 
 void Reservoir::predict(const double &dt) {
     double seconds     = dt * 24 * 3600;

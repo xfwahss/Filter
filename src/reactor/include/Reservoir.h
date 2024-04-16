@@ -56,8 +56,8 @@ class Reservoir {
   private:
     Nitrification nitrifi_process;
     Denitrification denitri_process;
-    std::vector<River> rivers_in;
-    std::vector<River> rivers_out;
+    std::vector<River*> rivers_in;
+    std::vector<River*> rivers_out;
     reservoir_status status;
     input_output_var current_rivervars;
     // 存储当前计算的水量，避免反复求解计算的数据损失
@@ -98,8 +98,8 @@ class Reservoir {
     void init(const double &wl, const double &c_no, const double &c_na,
               const double &c_nn, Nitrification &nitrifi_process,
               Denitrification &denitri_process);
-    void add_river_in(River &river);
-    void add_river_out(River &river);
+    void add_river_in(River *river);
+    void add_river_out(River *river);
     // 获取下一时刻河流状态信息并更新current_rivervars
     // 这里并没有限制时间步，考虑设置时间步防止空读
     input_output_var get_next_rivervars();

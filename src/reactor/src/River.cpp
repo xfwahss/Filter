@@ -9,7 +9,7 @@ River::River(const std::string& filename): file(filename){
 River::~River(){};
 
 bool River::flush() {
-    // 读取一列数据
+    // 读取一行数据,跳过了注释和空行
     bool status = file.readline();
     if (status){
         flow = file.data.flow;

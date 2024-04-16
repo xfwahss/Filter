@@ -10,15 +10,14 @@ set (RiverIO
     ../../io/src/FileIO.cc
     ../../io/src/RiverFileIO.cc
 )
-set(Reactor
-    ../src/River.cpp
-)
 
 # aux_source_directory(../../io/src IO)
-# aux_source_directory(../src REACTOR)
+aux_source_directory(../src REACTOR)
 
 add_library(fileio SHARED   ${RiverIO})
-add_library(reactor SHARED   ${Reactor})
+add_library(reactor SHARED   ${REACTOR})
 # add_executable(test ${TEST})
 add_executable(TestRiver.o TestRiver.cc)
+add_executable(TestReservoir.o TestReservoir.cc)
 target_link_libraries(TestRiver.o fileio reactor)
+target_link_libraries(TestReservoir.o fileio reactor)
