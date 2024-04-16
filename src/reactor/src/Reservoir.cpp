@@ -1,0 +1,87 @@
+#include "../include/Reservoir.h"
+
+Reservoir::Reservoir() {}
+Reservoir::~Reservoir() {}
+
+void Reservoir::init(const double &wl, const double &c_no, const double &c_na,
+                     const double &c_nn, Nitrification &nitrifi_process,
+                     Denitrification &denitri_process) {
+    status.wl = wl, status.c_no = c_no, status.c_na = c_na;
+    status.c_nn           = c_nn;
+    this->nitrifi_process = nitrifi_process;
+    this->denitri_process = denitri_process;
+    input_output_var temp(0, 0, 0, 0, 0, 0, 0, 0);
+    current_rivervars = temp;
+}
+
+void Reservoir::add_river_in(River &river) { rivers_in.push_back(river); }
+
+void Reservoir::add_river_out(River &river) { rivers_out.push_back(river); }
+
+double Reservoir::wl_to_volumn() {
+    return 0.0228 * status.wl * status.wl - 5.3301 * status.wl + 313.6498;
+}
+
+input_output_var Reservoir::get_next_rivervars() {
+    input_output_var next(0, 0, 0, 0, 0, 0, 0, 0);
+    for (int i = 0; i < rivers_in.size(); i++) {
+        next.flow_in += rivers_in[i].get_flow();
+        next.load_organic_in += rivers_in[i].get_load_organic();
+        next.load_ammonia_in += rivers_in[i].get_load_ammonia();
+        next.load_nitrate_in += rivers_in[i].get_load_nitrate();
+    };
+    for (int j = 0; j < rivers_out.size(); j++) {
+        next.flow_out += rivers_out[j].get_flow();
+        next.load_organic_out += rivers_out[j].get_load_organic();
+        next.load_ammonia_out += rivers_out[j].get_load_ammonia();
+        next.load_nitrate_out += rivers_out[j].get_load_nitrate();
+    };
+    current_rivervars = next;
+    return next;
+}
+
+reservoir_status Reservoir::current_status() { return status; }
+
+void Reservoir::update_status(const reservoir_status &updated_status) {
+    status = updated_status;
+}
+
+hidden_var Reservoir::current_hidden() {
+    reservoir_status res        = this->current_status();
+    nitrify_status nitr         = nitrifi_process.current_status();
+    denitrification_status deni = denitri_process.current_status();
+    hidden_var value(res, nitr, deni);
+    return value;
+}
+
+void Reservoir::update_hidden(const hidden_var &update_hidden) {
+    this->update_status(update_hidden.res_status);
+    nitrifi_process.update_status(update_hidden.nitr_status);
+    denitri_process.update_status(update_hidden.deni_status);
+}
+
+double Reservoir::volumn_to_wl(const double &volumn) { return 0; }
+
+double Reservoir::predict_volumn(const double &dt) {
+    double next_volumn =
+        volumn + dt * (current_rivervars.flow_in - current_rivervars.flow_out);
+    return next_volumn;
+}
+
+double Reservoir::predict_organic(const double &dt) {}
+double Reservoir::predict_ammonia(const double &dt) {}
+double Reservoir::predict_nitrate(const double &dt) {}
+
+void Reservoir::predict(const double &dt) {
+    double seconds     = dt * 24 * 3600;
+    double next_volumn = predict_volumn(seconds);
+    double next_wl     = volumn_to_wl(next_volumn);
+    double next_c_no   = predict_organic(seconds);
+    double next_c_na   = predict_ammonia(seconds);
+    double next_c_nn   = predict_nitrate(seconds);
+
+    // 更新
+    reservoir_status res(next_wl, next_c_no, next_c_na, next_c_nn);
+    volumn = next_volumn;
+    update_status(res);
+}
