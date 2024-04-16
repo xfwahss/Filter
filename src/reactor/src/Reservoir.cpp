@@ -25,12 +25,16 @@ double Reservoir::wl_to_volumn() {
 input_output_var Reservoir::get_next_rivervars() {
     input_output_var next(0, 0, 0, 0, 0, 0, 0, 0);
     for (int i = 0; i < rivers_in.size(); i++) {
+        // 河流读取下一时间步信息
+        rivers_in[i].flush();
         next.flow_in += rivers_in[i].get_flow();
         next.load_organic_in += rivers_in[i].get_load_organic();
         next.load_ammonia_in += rivers_in[i].get_load_ammonia();
         next.load_nitrate_in += rivers_in[i].get_load_nitrate();
     };
     for (int j = 0; j < rivers_out.size(); j++) {
+        // 河流读取下一步
+        rivers_in[j].flush();
         next.flow_out += rivers_out[j].get_flow();
         next.load_organic_out += rivers_out[j].get_load_organic();
         next.load_ammonia_out += rivers_out[j].get_load_ammonia();

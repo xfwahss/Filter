@@ -65,8 +65,6 @@ class Reservoir {
     // 根据水库水位计算水量,TODO 可能函数需要修改
     double wl_to_volumn();
 
-    // 获取下一时刻河流状态信息并更新current_rivervars
-    input_output_var get_next_rivervars();
     // 由水量计算出水位
     double volumn_to_wl(const double &volumn);
     /* 预测水位, 返回水量信息
@@ -102,6 +100,9 @@ class Reservoir {
               Denitrification &denitri_process);
     void add_river_in(River &river);
     void add_river_out(River &river);
+    // 获取下一时刻河流状态信息并更新current_rivervars
+    // 这里并没有限制时间步，考虑设置时间步防止空读
+    input_output_var get_next_rivervars();
     void update_status(const reservoir_status &updated_status);
     reservoir_status current_status();
     // 所有系统的状态
