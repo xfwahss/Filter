@@ -1,4 +1,5 @@
-# kalman-filter
+# filter
+一维水动力模型，数据同化校正水位，氨化系统参数、硝化系统参数、反硝化系统参数
 
-##介绍
-C++实现Kalman滤波
+## 未同化水位模拟效果
+![数据同化前水库水位模拟结果][./src/model/output/results.png]
