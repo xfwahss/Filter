@@ -1,9 +1,9 @@
 #include "../include/FileIO.h"
 #include <filesystem>
 
-FileIO::FileIO(const std::string &filename) : filename(filename) {
+FileIO::FileIO(const std::string &filename, const std::string &mode) : filename(filename) {
     std::filesystem::path filepath(filename);
-    if (!std::filesystem::exists(filepath)) {
+    if (mode=="r" && !std::filesystem::exists(filepath)) {
         throw std::runtime_error("File does not exist: " + filename);  
     }
 }

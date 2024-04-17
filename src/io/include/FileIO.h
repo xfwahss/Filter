@@ -9,7 +9,7 @@ class FileIO {
     std::string get_filename();
 
   public:
-    FileIO(const std::string &filename);
+    FileIO(const std::string &filename, const std::string &mode="r");
     ~FileIO();
     virtual void read() = 0;
     virtual void write() = 0;
