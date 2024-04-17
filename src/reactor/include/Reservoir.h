@@ -4,6 +4,7 @@
 #include "Nitrification.h"
 #include "River.h"
 #include <vector>
+#include <cmath>
 
 struct input_output_var {
     double flow_in;
@@ -63,10 +64,9 @@ class Reservoir {
     // 存储当前计算的水量，避免反复求解计算的数据损失
     double volumn;
     // 根据水库水位计算水量,TODO 可能函数需要修改
-    double wl_to_volumn();
+    // 水量的单位为10^8 m3
 
     // 由水量计算出水位
-    double volumn_to_wl(const double &volumn);
     /* 预测水位, 返回水量信息
     @param dt 以天为单位
     */
@@ -113,6 +113,9 @@ class Reservoir {
     // 也能够保证通过current_hidden获取所有的变量
     // 这步更新保证没有同化时模型能够继续跑下去
     void predict(const double &dt);
+
+    double wl_to_volumn(const double &wl);
+    double volumn_to_wl(const double &volumn);
 };
 
 #endif

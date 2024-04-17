@@ -18,8 +18,21 @@ void Reservoir::add_river_in(River *river) { rivers_in.push_back(river); }
 
 void Reservoir::add_river_out(River *river) { rivers_out.push_back(river); }
 
-double Reservoir::wl_to_volumn() {
-    return 0.0228 * status.wl * status.wl - 5.3301 * status.wl + 313.6498;
+double Reservoir::wl_to_volumn(const double &wl) {
+    return 0.0228 * wl * wl - 5.3301 * wl + 313.6498;
+}
+// 牛顿迭代法求解1元3次方程
+double Reservoir::volumn_to_wl(const double &volumn) {
+    double x0 = 300, x1 = 500, epsion = 1e-8;
+    do {
+        double temp = x1 - (wl_to_volumn(x1) - volumn) /
+                               ((wl_to_volumn(x1) - volumn) -
+                                (wl_to_volumn(x0) - volumn)) *
+                               (x1 - x0);
+        x0 = x1;
+        x1 = temp;
+    } while (std::fabs(wl_to_volumn(x1) - volumn) > epsion);
+    return x1;
 }
 
 input_output_var Reservoir::get_next_rivervars() {
@@ -64,17 +77,15 @@ void Reservoir::update_hidden(const hidden_var &update_hidden) {
     denitri_process.update_status(update_hidden.deni_status);
 }
 
-double Reservoir::volumn_to_wl(const double &volumn) { return 0; }
-
 double Reservoir::predict_volumn(const double &dt) {
     double next_volumn =
         volumn + dt * (current_rivervars.flow_in - current_rivervars.flow_out);
     return next_volumn;
 }
 
-double Reservoir::predict_organic(const double &dt) {return 0;}
-double Reservoir::predict_ammonia(const double &dt) {return 0;}
-double Reservoir::predict_nitrate(const double &dt) {return 0;}
+double Reservoir::predict_organic(const double &dt) { return 0; }
+double Reservoir::predict_ammonia(const double &dt) { return 0; }
+double Reservoir::predict_nitrate(const double &dt) { return 0; }
 
 void Reservoir::predict(const double &dt) {
     double seconds     = dt * 24 * 3600;

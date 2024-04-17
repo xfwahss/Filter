@@ -20,4 +20,8 @@ int main() {
                   << values.load_nitrate_out << "," << values.load_organic_in
                   << "," << values.load_organic_out << "," << std::endl;
     }
+    double volumn = res.wl_to_volumn(136.33);
+    std::cout<<volumn<<std::endl;
+    double wl = res.volumn_to_wl(volumn);
+    std::cout<<wl<<std::endl;
 }
