@@ -23,19 +23,25 @@ void Reservoir::add_river_out(River *river) { rivers_out.push_back(river); }
 
 double Reservoir::wl_to_volumn(const double &wl) {
     // return -1.98*1e-6*std::pow(wl, 5) + 1.43 * 1e-3 * std::pow(wl, 4) - 0.415 * std::pow(wl, 3) + 60.1 * std::pow(wl, 2) - 4350 * wl + 1.26 * 1e5;
-    return 0.0228 * wl * wl - 5.3301 * wl + 313.6498;
+    return 0.022846 * wl * wl - 5.341818 * wl + 314.495276;
 }
-// 牛顿迭代法求解1元3次方程
 double Reservoir::volumn_to_wl(const double &volumn) {
-    double x0 = 300, x1 = 500, epsion = 1e-8;
-    do {
-        double temp = x1 - (wl_to_volumn(x1) - volumn) /
-                               ((wl_to_volumn(x1) - volumn) -
-                                (wl_to_volumn(x0) - volumn)) *
-                               (x1 - x0);
-        x0 = x1;
-        x1 = temp;
-    } while (std::fabs(wl_to_volumn(x1) - volumn) > epsion);
+
+    // 牛顿迭代法求解1元3次方程
+    // double x0 = 300, x1 = 500, epsion = 1e-8;
+    // do {
+    //     double temp = x1 - (wl_to_volumn(x1) - volumn) /
+    //                            ((wl_to_volumn(x1) - volumn) -
+    //                             (wl_to_volumn(x0) - volumn)) *
+    //                            (x1 - x0);
+    //     x0 = x1;
+    //     x1 = temp;
+    // } while (std::fabs(wl_to_volumn(x1) - volumn) > epsion);
+    double a, b, c;
+    a = 0.022846;
+    b = -5.341818;
+    c = 314.495276 - volumn;
+    double x1 = (-b + std::sqrt(b*b - 4 * a * c))/a/2;
     return x1;
 }
 
