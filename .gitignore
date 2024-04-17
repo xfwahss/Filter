@@ -6,7 +6,10 @@
 *.idb
 *.pdb
 *.swap
+*.json
 /build
 /src/io/build
 /src/reactor/test/build
 /src/model/build
+/src/model/input
+/src/model/tmp
