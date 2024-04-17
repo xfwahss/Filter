@@ -65,8 +65,9 @@ class Reservoir {
     double volumn;
     // 根据水库水位计算水量,TODO 可能函数需要修改
     // 水量的单位为10^8 m3
-
+    double wl_to_volumn(const double &wl);
     // 由水量计算出水位
+    double volumn_to_wl(const double &volumn);
     /* 预测水位, 返回水量信息
     @param dt 以天为单位
     */
@@ -103,19 +104,20 @@ class Reservoir {
     // 获取下一时刻河流状态信息并更新current_rivervars
     // 这里并没有限制时间步，考虑设置时间步防止空读
     input_output_var get_next_rivervars();
+
     void update_status(const reservoir_status &updated_status);
     reservoir_status current_status();
-    // 所有系统的状态
+
+
+    // 所有系统的状态, 提供给同化系统的接口
     hidden_var current_hidden();
-    // 更新所有系统的状态
     void update_hidden(const hidden_var &updated_hidden);
+
     // 根据当前信息估计下一步水库状态,同时更新当前信息;
     // 也能够保证通过current_hidden获取所有的变量
     // 这步更新保证没有同化时模型能够继续跑下去
     void predict(const double &dt);
 
-    double wl_to_volumn(const double &wl);
-    double volumn_to_wl(const double &volumn);
 };
 
 #endif

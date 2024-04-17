@@ -6,8 +6,11 @@ Reservoir::~Reservoir() {}
 void Reservoir::init(const double &wl, const double &c_no, const double &c_na,
                      const double &c_nn, Nitrification &nitrifi_process,
                      Denitrification &denitri_process) {
-    status.wl = wl, status.c_no = c_no, status.c_na = c_na;
+    status.wl             = wl;
+    status.c_no           = c_no;
+    status.c_na           = c_na;
     status.c_nn           = c_nn;
+    volumn                = wl_to_volumn(wl);
     this->nitrifi_process = nitrifi_process;
     this->denitri_process = denitri_process;
     input_output_var temp(0, 0, 0, 0, 0, 0, 0, 0);
@@ -19,6 +22,7 @@ void Reservoir::add_river_in(River *river) { rivers_in.push_back(river); }
 void Reservoir::add_river_out(River *river) { rivers_out.push_back(river); }
 
 double Reservoir::wl_to_volumn(const double &wl) {
+    // return -1.98*1e-6*std::pow(wl, 5) + 1.43 * 1e-3 * std::pow(wl, 4) - 0.415 * std::pow(wl, 3) + 60.1 * std::pow(wl, 2) - 4350 * wl + 1.26 * 1e5;
     return 0.0228 * wl * wl - 5.3301 * wl + 313.6498;
 }
 // 牛顿迭代法求解1元3次方程
@@ -79,7 +83,7 @@ void Reservoir::update_hidden(const hidden_var &update_hidden) {
 
 double Reservoir::predict_volumn(const double &dt) {
     double next_volumn =
-        volumn + dt * (current_rivervars.flow_in - current_rivervars.flow_out);
+        volumn + dt * (current_rivervars.flow_in - current_rivervars.flow_out) * 1e-8;
     return next_volumn;
 }
 
