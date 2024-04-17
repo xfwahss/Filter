@@ -9,6 +9,7 @@ include_directories(../../io/include)
 set (RiverIO
     ../../io/src/FileIO.cc
     ../../io/src/RiverFileIO.cc
+    ../../io/src/ReservoirFileIO.cc
 )
 
 # aux_source_directory(../../io/src IO)

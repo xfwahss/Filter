@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main() {
-    Reservoir res;
+    Reservoir res("../../reservoir_test_data/out_reservoir.txt");
     River river1("../../reservoir_test_data/river1.txt");
     River river2("../../reservoir_test_data/river2.txt");
     River river3("../../reservoir_test_data/river3.txt");
@@ -25,6 +25,7 @@ int main() {
                   << values.load_nitrate_out << "," << values.load_organic_in
                   << "," << values.load_organic_out << "," << std::endl;
         res.predict(1);
+        res.write();
         std::cout<<res.current_status().wl<<std::endl;
     }
     // 水量转水位测试，需要将方法转化为public

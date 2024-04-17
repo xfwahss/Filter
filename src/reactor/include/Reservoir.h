@@ -5,6 +5,7 @@
 #include "River.h"
 #include <vector>
 #include <cmath>
+#include "../../io/include/ReservoirFileIO.h"
 
 struct input_output_var {
     double flow_in;
@@ -30,17 +31,6 @@ struct input_output_var {
           load_nitrate_out(load_nitrate_out) {}
 };
 
-struct reservoir_status {
-    double wl;   // 水库水位
-    double c_no; // 水库有机氮浓度
-    double c_na; // 水库氨氮浓度
-    double c_nn; // 水库硝态氮浓度
-    reservoir_status() = default;
-    reservoir_status(const double &wl, const double &c_no, const double &c_na,
-                     const double &c_nn)
-        : wl(wl), c_no(c_no), c_na(c_na), c_nn(c_nn) {}
-};
-
 struct hidden_var {
     reservoir_status res_status;
     nitrify_status nitr_status;
@@ -57,6 +47,7 @@ class Reservoir {
   private:
     Nitrification nitrifi_process;
     Denitrification denitri_process;
+    ReservoirFileIO file;
     std::vector<River*> rivers_in;
     std::vector<River*> rivers_out;
     reservoir_status status;
@@ -86,7 +77,7 @@ class Reservoir {
     double predict_nitrate(const double &dt);
 
   public:
-    Reservoir();
+    Reservoir(const std::string &filename);
     ~Reservoir();
     /* 水库状态初始化
        @param wl 水库水位
@@ -117,6 +108,7 @@ class Reservoir {
     // 也能够保证通过current_hidden获取所有的变量
     // 这步更新保证没有同化时模型能够继续跑下去
     void predict(const double &dt);
+    void write();
 
 };
 

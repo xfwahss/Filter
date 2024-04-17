@@ -1,6 +1,6 @@
 #include "../include/Reservoir.h"
 
-Reservoir::Reservoir() {}
+Reservoir::Reservoir(const std::string &filename):file(filename, "w") {}
 Reservoir::~Reservoir() {}
 
 void Reservoir::init(const double &wl, const double &c_no, const double &c_na,
@@ -103,4 +103,8 @@ void Reservoir::predict(const double &dt) {
     reservoir_status res(next_wl, next_c_no, next_c_na, next_c_nn);
     volumn = next_volumn;
     update_status(res);
+}
+
+void Reservoir::write(){
+    file.writeline(status);
 }
