@@ -8,8 +8,9 @@
 *.swap
 *.json
 /build
-/src/io/build
+
 /src/io/test/build
+/src/filter/test/build
 /src/reactor/test/build
 /src/model/build
 /src/model/input
