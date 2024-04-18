@@ -9,11 +9,15 @@ set( CMAKE_BUILD_TYPE "Debug" )
 include_directories(../../third_party/eigen)
 include_directories(../include)
 
-set(IOCC 
-../src/FileIO.cc
-../src/FilterIO.cc
-)
+aux_source_directory(../src IO)
 
-add_library(fileio SHARED ${IOCC})
+# set(IOCC 
+# ../src/FileIO.cc
+# ../src/FilterIO.cc
+# )
+
+add_library(fileio SHARED ${IO})
 add_executable(TestFilterIO TestFilterIO.cc)
+add_executable(TestMatFileIO TestMatrixIO.cc)
 target_link_libraries(TestFilterIO fileio)
+target_link_libraries(TestMatFileIO fileio)

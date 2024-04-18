@@ -1,5 +1,4 @@
 #include "../include/MatFileIO.h"
-#include <fstream>
 
 MatFileIO::MatFileIO(const std::string &filename) : FileIO(filename) {
     file.open(FileIO::get_filename());
@@ -21,10 +20,12 @@ void MatFileIO::read_matrix(const std::string &matrixinfo) {
         std::istringstream iss(line);
         for (int j = 0; j < columns; j++) {
             double value;
-            if(iss >> value){
+            if (iss >> value) {
                 matrix(i, j) = value;
-            }else{
-                throw std::runtime_error("Matrix:: wrong number of column elements provides, check:" + name);
+            } else {
+                throw std::runtime_error("Matrix:: wrong number of column "
+                                         "elements provides, check:" +
+                                         name);
             }
         }
     }
@@ -47,7 +48,8 @@ void MatFileIO::read_vector(const std::string &vectorinfo) {
         if (rowsiss >> value) {
             vector(i) = value;
         } else {
-            throw std::runtime_error("Vector::Wrong number of data provided, check!!!");
+            throw std::runtime_error(
+                "Vector::Wrong number of data provided, check!!!");
         }
     }
     initstate.set_vector(name, vector);
@@ -56,11 +58,7 @@ void MatFileIO::read_vector(const std::string &vectorinfo) {
 void MatFileIO::read() {
     std::string line;
     while (std::getline(file, line)) {
-        if (line.find_first_not_of(" \t\n\v\f\r") == std::string::npos) {
-            // skip blank lines
-            continue;
-        } else if (line.size() > 0 && line[0] == '#') {
-            // skip comment
+        if (is_blank(line) || is_comment(line)) {
             continue;
         } else {
             std::istringstream iss(line);
@@ -80,8 +78,6 @@ void MatFileIO::read() {
     }
 }
 
-InitState MatFileIO::get_initstate(){
-    return initstate;
-}
+InitState MatFileIO::get_initstate() { return initstate; }
 
 void MatFileIO::write() {}
