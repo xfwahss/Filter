@@ -7,7 +7,7 @@ g++ -o TestRiverFileIO.o TestRiverFileIO.cc "../src/RiverFileIO.cc" "../src/File
 */
 
 int main() {
-    RiverFileIO river("./bai_river.txt");
+    RiverFileIO river("../../test_data/test_river.txt");
     bool status = true;
     while (status) {
         status = river.readline();
