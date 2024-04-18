@@ -25,11 +25,9 @@ int main() {
     KalmanFilter kf(2, 1);
     kf.init(x, P, F, Q, B, u, H, R);
 
-    double measurements[] = {2.1, 2.0, 2.1, 2.5, 2.2, 2.3, 3.5, 2.7, 2.8, 2.4, 2.3};
-    size_t num_measurements = sizeof(measurements) / sizeof(measurements[0]);
-    kf.batch_filter(num_measurements, measurements);
-    kf.batch_filter(num_measurements, measurements);
-    kf.batch_filter(num_measurements, measurements);
-    kf.batch_filter(num_measurements, measurements);
+    FilterIO measurement("../../test_data/test_kalman_filter_and_fileio.txt",
+    "../../test_data/kalman_and_fileio_results.txt");
+
+    kf.batch_filter(measurement);
     return 0;
 }
