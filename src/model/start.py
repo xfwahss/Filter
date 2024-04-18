@@ -6,6 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 if __name__ == "__main__":
+
     input_dir = "./input"
     temp_dir = "./tmp"
     output_dir = "./output"

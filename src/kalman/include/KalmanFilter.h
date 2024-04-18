@@ -3,6 +3,7 @@
 #include<Eigen/Dense>
 #include<iostream>
 #include"FilterIO.h"
+#include<string>
 
 class KalmanFilter {
 public:
@@ -19,6 +20,7 @@ public:
     Eigen::MatrixXd get_covariance() const;
     void batch_filter(const int &counts, const double* measurements);
     void batch_filter(FilterIO& measurements);
+    void write(FilterIO& results, const std::string& variable); // write results
 
 private:
     const int dim_state;
