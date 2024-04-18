@@ -6,5 +6,8 @@ class FilterBase {
   protected:
     Eigen::VectorXd X;
     Eigen::MatrixXd P;
+  public:
+    FilterBase();
+    ~FilterBase();
 };
 #endif
