@@ -48,23 +48,23 @@ template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() {
 template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     batch_sample();
     batch_predict(dt);
-    std::cout<<"HELLO"<<std::endl;
+
     // 计算均值向量
-    Eigen::VectorXd mean;
+    Eigen::VectorXd mean = Eigen::VectorXd::Zero(ensemble.size());
     for (int i = 0; i < ensemble.size(); ++i) {
         mean += ensemble[i]->current_status();
     }
     mean /= ensemble.size();
 
     // 计算协方差矩阵
-    // Eigen::MatrixXd cov;
-    // for (int j = 0; j < ensemble.size(); ++j) {
-    //     Eigen::VectorXd diff = ensemble[j]->current_status() - mean;
-    //     cov += diff * diff.transpose();
-    // }
-    // cov /= ensemble.size();
+    Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(ensemble.size(), ensemble.size());
+     for (int j = 0; j < ensemble.size(); ++j) {
+         Eigen::VectorXd diff = ensemble[j]->current_status() - mean;
+         cov += diff * diff.transpose();
+     }
+     cov /= ensemble.size();
     FilterBase::X = mean;
-    // FilterBase::P = cov;
+    FilterBase::P = cov;
 }
 
 template <class T> void EnsembleKalmanFilter<T>::update() {}
