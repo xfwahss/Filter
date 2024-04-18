@@ -1,4 +1,4 @@
-#include "KalmanFilter.h"
+#include "../include/KalmanFilter.h"
 
 KalmanFilter::KalmanFilter(const int &dim_state, const int &dim_measure)
     : dim_state(dim_state), dim_measure(dim_measure) {}
