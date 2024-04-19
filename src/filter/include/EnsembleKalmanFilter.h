@@ -50,19 +50,20 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     batch_predict(dt);
 
     // 计算均值向量
-    Eigen::VectorXd mean = Eigen::VectorXd::Zero(ensemble.size());
+    Eigen::VectorXd mean = Eigen::VectorXd::Zero(FilterBase::X.rows());
     for (int i = 0; i < ensemble.size(); ++i) {
         mean += ensemble[i]->current_status();
     }
     mean /= ensemble.size();
 
     // 计算协方差矩阵
-    Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(ensemble.size(), ensemble.size());
-     for (int j = 0; j < ensemble.size(); ++j) {
-         Eigen::VectorXd diff = ensemble[j]->current_status() - mean;
-         cov += diff * diff.transpose();
-     }
-     cov /= ensemble.size();
+    Eigen::MatrixXd cov =
+        Eigen::MatrixXd::Zero(FilterBase::P.rows(), FilterBase::P.cols());
+    for (int j = 0; j < ensemble.size(); ++j) {
+        Eigen::VectorXd diff = ensemble[j]->current_status() - mean;
+        cov += diff * diff.transpose();
+    }
+    cov /= ensemble.size() - 1;
     FilterBase::X = mean;
     FilterBase::P = cov;
 }
@@ -80,24 +81,45 @@ void EnsembleKalmanFilter<T>::batch_construct(const int &ensemble_size) {
 template <class T>
 Eigen::VectorXd EnsembleKalmanFilter<T>::multivariate_gaussian_random(
     Eigen::VectorXd &status, Eigen::MatrixXd &covariance) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device seed;
+    std::mt19937_64 engine(seed());
+    std::normal_distribution<double> dist(0.0, 1.0);
 
     // 使用Eigen库计算Cholesky分解
     Eigen::LLT<Eigen::MatrixXd> lltOfCov(covariance);
     Eigen::MatrixXd L = lltOfCov.matrixL();
 
     // 生成随机数
-    std::normal_distribution<double> dist(0.0, 1.0);
     Eigen::VectorXd z(status.size());
     for (int i = 0; i < status.size(); ++i) {
-        z(i) = dist(gen);
+        z(i) = dist(engine);
     }
     Eigen::VectorXd random_number = status + L * z;
     return random_number;
 }
 
 template <class T> void EnsembleKalmanFilter<T>::batch_sample() {
+    // 统一生成方法，空间换时间
+    // Eigen::MatrixXd random_num(FilterBase::X.rows(), ensemble.size());
+    // for (int i = 0; i < FilterBase::X.rows(); ++i) {
+    //     std::random_device seed;
+    //     std::mt19937_64 engine(seed());
+    //     std::normal_distribution dist(0.0, 1.0);
+    //     for (int j = 0; j < ensemble.size(); ++j) {
+    //         random_num.row(i)[j] = dist(engine);
+    //     }
+    // }
+
+    // Eigen::LLT<Eigen::MatrixXd> lltOfCov(FilterBase::P);
+    // Eigen::MatrixXd L = lltOfCov.matrixL();
+    // std::cout<< L * L.transpose() << std::endl;
+
+    // for(int i=0; i< ensemble.size(); ++i){
+    //     Eigen::VectorXd random_number = FilterBase::X + L * random_num.col(i);
+    //     ensemble[i] -> update_status(random_number);
+    // }
+
+
     for (int i = 0; i < ensemble.size(); ++i) {
         Eigen::VectorXd random_num =
             multivariate_gaussian_random(FilterBase::X, FilterBase::P);
