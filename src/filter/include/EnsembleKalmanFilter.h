@@ -18,11 +18,22 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     ~EnsembleKalmanFilter();
     void predict(const double &dt);
     void update();
+    void set_process_error_variance(Eigen::VectorXd Q);
+    void init_H(Eigen::MatrixXd H);
     Eigen::VectorXd current_status();
     Eigen::MatrixXd current_covariance();
 
   private:
     std::vector<T *> ensemble;
+    // 添加过程预测的误差，超参数，人为给定
+    // 采用单个推进，误差为向量形式,给定每个方差的大小，均值为0，使用正态随机数
+    Eigen::VectorXd process_error_variance;
+    // 观测矩阵H
+    Eigen::MatrixXd H;
+
+    // 根据给定的方差生成一个状态的预测随机误差
+    Eigen::VectorXd get_process_error();
+
     void batch_construct(const int &ensemble_size);
     // 先归一化再采样,使得采样尽可能均匀
     Eigen::VectorXd multivariate_gaussian_random(Eigen::VectorXd &status,
@@ -41,6 +52,12 @@ EnsembleKalmanFilter<T>::EnsembleKalmanFilter(const int &ensemble_size,
     ensemble.reserve(ensemble_size);
     batch_construct(ensemble_size);
 }
+
+template <class T>
+void EnsembleKalmanFilter<T>::init_H(Eigen::MatrixXd H){
+    this->H = H;
+}
+
 template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() {
     batch_destruct();
 }
@@ -52,7 +69,7 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     // 计算均值向量
     Eigen::VectorXd mean = Eigen::VectorXd::Zero(FilterBase::X.rows());
     for (int i = 0; i < ensemble.size(); ++i) {
-        mean += ensemble[i]->current_status();
+        mean += ensemble[i]->current_status() ;
     }
     mean /= ensemble.size();
 
@@ -60,7 +77,8 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     Eigen::MatrixXd cov =
         Eigen::MatrixXd::Zero(FilterBase::P.rows(), FilterBase::P.cols());
     for (int j = 0; j < ensemble.size(); ++j) {
-        Eigen::VectorXd diff = ensemble[j]->current_status() - mean;
+        // 需要考虑过程预测引起的误差
+        Eigen::VectorXd diff = ensemble[j]->current_status() + get_process_error() - mean;
         cov += diff * diff.transpose();
     }
     cov /= ensemble.size() - 1;
@@ -115,10 +133,9 @@ template <class T> void EnsembleKalmanFilter<T>::batch_sample() {
     // std::cout<< L * L.transpose() << std::endl;
 
     // for(int i=0; i< ensemble.size(); ++i){
-    //     Eigen::VectorXd random_number = FilterBase::X + L * random_num.col(i);
-    //     ensemble[i] -> update_status(random_number);
+    //     Eigen::VectorXd random_number = FilterBase::X + L *
+    //     random_num.col(i); ensemble[i] -> update_status(random_number);
     // }
-
 
     for (int i = 0; i < ensemble.size(); ++i) {
         Eigen::VectorXd random_num =
@@ -127,7 +144,23 @@ template <class T> void EnsembleKalmanFilter<T>::batch_sample() {
     }
 }
 
-// TODO::应该添加预测误差
+template <class T>
+void EnsembleKalmanFilter<T>::set_process_error_variance(Eigen::VectorXd Q) {
+    process_error_variance = Q;
+}
+
+template <class T>
+Eigen::VectorXd EnsembleKalmanFilter<T>::get_process_error() {
+    Eigen::VectorXd error(FilterBase::X.rows());
+    for (int i = 0; i < FilterBase::X.rows(); ++i) {
+        std::random_device seed;
+        std::mt19937_64 engine(seed());
+        std::normal_distribution<double> dist(0.0, process_error_variance(i));
+        error(i) = dist(engine);
+    }
+    return error;
+}
+
 template <class T>
 void EnsembleKalmanFilter<T>::batch_predict(const double &dt) {
     for (int i = 0; i < ensemble.size(); ++i) {
