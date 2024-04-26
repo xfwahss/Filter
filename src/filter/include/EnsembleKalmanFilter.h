@@ -17,14 +17,20 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
                          Eigen::MatrixXd P);
     ~EnsembleKalmanFilter();
     void predict(const double &dt);
-    void update();
+    void update(Eigen::VectorXd z, Eigen::MatrixXd R);
     void set_process_error_variance(Eigen::VectorXd Q);
     void init_H(Eigen::MatrixXd H);
+    void step_assimilation(const double &dt, Eigen::MatrixXd measurements);
     Eigen::VectorXd current_status();
     Eigen::MatrixXd current_covariance();
 
   private:
-    std::vector<T *> ensemble;
+    /* 观测数据，存储格式为, m * n 矩阵，有m个观测变量，每个观测变量有n个值
+        @param z 存储观测均值
+        @param R 存储观测的协方差矩阵
+    */
+    void process_measurements(Eigen::MatrixXd mesurements, Eigen::VectorXd &z,
+                              Eigen::MatrixXd &R) std::vector<T *> ensemble;
     // 添加过程预测的误差，超参数，人为给定
     // 采用单个推进，误差为向量形式,给定每个方差的大小，均值为0，使用正态随机数
     Eigen::VectorXd process_error_variance;
@@ -53,8 +59,7 @@ EnsembleKalmanFilter<T>::EnsembleKalmanFilter(const int &ensemble_size,
     batch_construct(ensemble_size);
 }
 
-template <class T>
-void EnsembleKalmanFilter<T>::init_H(Eigen::MatrixXd H){
+template <class T> void EnsembleKalmanFilter<T>::init_H(Eigen::MatrixXd H) {
     this->H = H;
 }
 
@@ -69,7 +74,7 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     // 计算均值向量
     Eigen::VectorXd mean = Eigen::VectorXd::Zero(FilterBase::X.rows());
     for (int i = 0; i < ensemble.size(); ++i) {
-        mean += ensemble[i]->current_status() ;
+        mean += ensemble[i]->current_status();
     }
     mean /= ensemble.size();
 
@@ -77,8 +82,9 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     Eigen::MatrixXd cov =
         Eigen::MatrixXd::Zero(FilterBase::P.rows(), FilterBase::P.cols());
     for (int j = 0; j < ensemble.size(); ++j) {
-        // 需要考虑过程预测引起的误差
-        Eigen::VectorXd diff = ensemble[j]->current_status() + get_process_error() - mean;
+        // 需要考虑过程预测引起的误差,添加了get_process_error
+        Eigen::VectorXd diff =
+            ensemble[j]->current_status() + get_process_error() - mean;
         cov += diff * diff.transpose();
     }
     cov /= ensemble.size() - 1;
@@ -86,7 +92,43 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     FilterBase::P = cov;
 }
 
-template <class T> void EnsembleKalmanFilter<T>::update() {}
+template <class T>
+void EnsembleKalmanFilter<T>::process_measurements(Eigen::MatrixXd measurements,
+                                                   Eigen::VectorXd &z,
+                                                   Eigen::MatrixXd &R) {
+    int var_nums         = measurements.rows();
+    Eigen::VectorXd mean = Eigen::VectorXd::Zero(var_nums);
+    Eigen::MatrixXd cov  = Eigen::MatriXd::Zero(var_nums, var_nums);
+
+    for (int i = 0; i < measurements.cols(); i++) {
+        mean += measurements.col(i);
+    }
+    mean /= measurements.cols();
+    for (int i = 0; i < measurements.cols(); ++i) {
+        Eigen::VectorXd diff = measurements.col(i) - mean;
+        cov += diff * diff.transpose();
+    }
+    cov /= measurements.cols() - 1;
+    z = mean;
+    R = cov;
+}
+
+template <class T>
+void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
+    Eigen::MatrixXd K =
+        P * H.transpose() * (H * P * H.transpose() + R).inverse();
+    X = X + K * (z - H * X);
+    P = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
+}
+
+template <class T>
+void EnsembleKalmanFilter<T>::step_assimilation(const double &dt, Eigen::MatrixXd measurements){
+    Eigen::VectorXd z;
+    Eigen::MatrixXd R;
+    predict(dt);
+    process_measurements(measurements, z, R);
+    update(z, R);
+}
 
 template <class T>
 void EnsembleKalmanFilter<T>::batch_construct(const int &ensemble_size) {
