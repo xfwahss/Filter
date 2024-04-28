@@ -16,17 +16,16 @@ int main() {
     P << 10; // 初始状态协方差
     F << 1;  // 状态转移为恒等矩阵
     H << 1;  // 观测矩阵为恒等矩阵
-    Q << 0.01; // 过程噪声较小
+    Q << 2; // 过程噪声较小
     R << 1;   // 测量噪声较大
     B << 0;
     u << 0;
-    R << 1;
 
     KalmanFilter kf(2, 1);
     kf.init(x, P, F, Q, B, u, H, R);
 
-    FilterIO measurement("../../test_data/test_kalman_filter_and_fileio.txt",
-    "../../test_data/kalman_and_fileio_results.txt");
+    FilterIO measurement("../../test/data/test_kalman_filter_and_fileio.txt",
+    "../../test/data/kalman_and_fileio_results.txt");
 
     kf.batch_filter(measurement);
     return 0;
