@@ -30,6 +30,18 @@ int FilterIO::get_columns() { return columns; }
 
 int FilterIO::get_measurement_nums() { return measurement_nums; }
 
+
+void FilterIO::readline_to_matrixxd(Eigen::MatrixXd &measurement) {
+    std::string line;
+    if (std::getline(ifile, line)) {
+        std::istringstream iss(line);
+        std::string value;
+        for (int i = 0; i < columns; i++) {
+            std::getline(iss, value, ',');
+            measurement(0, i) = std::stod(value);
+        };
+    }
+};
 void FilterIO::readline_to_vectorxd(Eigen::VectorXd &measurement) {
     std::string line;
     if (std::getline(ifile, line)) {

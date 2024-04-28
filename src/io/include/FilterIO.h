@@ -20,6 +20,7 @@ class FilterIO : public FileIO {
     ~FilterIO();
     // 读取测量值
     void readline_to_vectorxd(Eigen::VectorXd &measurement);
+    void readline_to_matrixxd(Eigen::MatrixXd &measurement);
     // 写入同化结果和单个变量的方差(协方差矩阵的对角值)
     void write_vectorxd_diagonal_matrixd(Eigen::VectorXd &status,
                                          Eigen::MatrixXd &covariance);
