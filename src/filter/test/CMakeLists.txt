@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 project("filter-test")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # 生成compile_commands.json文件
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 # set( CMAKE_CXX_FLAGS "-std=c++11" )
