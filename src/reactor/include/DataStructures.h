@@ -12,7 +12,46 @@
 #include <stdexcept>
 
 // 存储水库状态
-struct reervoir_status {};
+struct res_status {
+    double wl;
+    double c_no;
+    double c_na;
+    double c_nn;
+    double T;
+    double c_do;
+    res_status() = default;
+
+    /* @brief 水库状态初始化
+     * @param wl 水库水位
+     * @param c_no 水库有机氮浓度
+     * @param c_na 水库氨氮浓度
+     * @param c_nn 水库硝态氮浓度
+     * @param T 温度
+     * @param c_do 溶解氧浓度
+     */
+    res_status(const double &wl, const double &c_no, const double &c_na,
+               const double &c_nn, const double &T, const double &c_do)
+        : wl(wl), c_no(c_no), c_na(c_na), c_nn(c_nn), T(T), c_do(c_do) {}
+    res_status &operator=(const Eigen::VectorXd &v) {
+        if (v.size() == 6) {
+            wl   = v(0);
+            c_no = v(1);
+            c_na = v(2);
+            c_nn = v(3);
+            T    = v(4);
+            c_do = v(5);
+            return *this;
+        } else {
+            throw std::length_error(
+                "Length of VectorXd does not match struct:res_status");
+        }
+    }
+    operator Eigen::VectorXd() const {
+        Eigen::VectorXd v(6);
+        v << wl, c_no, c_na, c_nn, T, c_do;
+        return v;
+    }
+};
 
 struct rier_status {};
 

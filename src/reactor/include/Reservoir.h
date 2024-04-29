@@ -1,122 +1,82 @@
 #ifndef RESERVOIR_H
 #define RESERVOIR_H
-#include "Denitrification.h"
-#include "Nitrification.h"
-#include "River.h"
-#include <vector>
-#include <cmath>
-#include "../../io/include/ReservoirFileIO.h"
-
-
-/* 与集合卡尔曼滤波兼容，水库中需要实现的方法有：
-Eigen::VectorXd get_status()
-void update(Eigen::VectorXd)
-void predict(const double &dt)
-*/
-struct input_output_var {
-    double flow_in;
-    double flow_out;
-    double load_organic_in;
-    double load_ammonia_in;
-    double load_nitrate_in;
-    double load_organic_out;
-    double load_ammonia_out;
-    double load_nitrate_out;
-    input_output_var() = default;
-    input_output_var(const double &flow_in, const double &flow_out,
-                     const double &load_organic_in,
-                     const double &load_ammonia_in,
-                     const double &load_nitrate_in,
-                     const double &load_organic_out,
-                     const double &load_ammonia_out,
-                     const double &load_nitrate_out)
-        : flow_in(flow_in), flow_out(flow_out),
-          load_organic_in(load_organic_in), load_ammonia_in(load_ammonia_in),
-          load_nitrate_in(load_nitrate_in), load_organic_out(load_organic_out),
-          load_ammonia_out(load_ammonia_out),
-          load_nitrate_out(load_nitrate_out) {}
-};
-
-struct hidden_var {
-    reservoir_status res_status;
-    nitri_status nitri_sta;
-    deni_status deni_sta;
-    hidden_var() = default;
-    hidden_var(const reservoir_status &res_status,
-               const nitri_status &nitr_status,
-               const deni_status &deni_sta)
-        : res_status(res_status), nitri_sta(nitr_status),
-          deni_sta(deni_sta) {}
-};
-
+#include "DataStructures.h"
 
 class Reservoir {
   private:
-    Nitrification nitrifi_process;
-    Denitrification denitri_process;
-    ReservoirFileIO file;
-    std::vector<River*> rivers_in;
-    std::vector<River*> rivers_out;
-    reservoir_status status;
-    input_output_var current_rivervars;
-    // 存储当前计算的水量，避免反复求解计算的数据损失
+    res_status status;
+    // 水量单位10^8 m3
     double volumn;
-    // 根据水库水位计算水量,TODO 可能函数需要修改
-    // 水量的单位为10^8 m3
+    // 由水位计算出水量
     double wl_to_volumn(const double &wl);
     // 由水量计算出水位
     double volumn_to_wl(const double &volumn);
-    /* 预测水位, 返回水量信息
-    @param dt 以天为单位
-    */
-    double predict_volumn(const double &dt);
-    /* 预测有机氮浓度
-    @param dt 以天为单位
-    */
-    double predict_organic(const double &dt);
-    /* 预测氨氮浓度
-    @param dt 以天为单位
-    */
-    double predict_ammonia(const double &dt);
-    /* 预测硝态氮浓度
-    @param dt 以天为单位
-    */
-    double predict_nitrate(const double &dt);
+    double predict_volumn(const double &seconds, const double &flow_in,
+                          const double &flow_out);
+    /*
+     * @brief 计算下一时间步的有机氮浓度
+     * @param seconds 时间秒
+     * @param load_in 有机氮入库负荷 g/s
+     * @param load_out 有机氮出库负荷 g/s
+     * @param ro 氨化速率 g/m3/s
+     * @param next_volumn 下一时刻水量 1e-8 m3, 由predict_volumn估算
+     */
+    double predict_organic(const double &seconds, const double &load_in,
+                           const double &load_out, const double &ro,
+                           const double &next_volumn);
+    /*
+     * @brief 计算下一时间步的氨氮浓度
+     * @param seconds 时间秒
+     * @param load_in 氨氮入库负荷 g/s
+     * @param load_out 氨氮出库负荷 g/s
+     * @param ro 氨化速率 g/m3/s
+     * @param ra 硝化速率 g/m3/s
+     * @param next_volumn 下一时刻水量 1e-8 m3, 由predict_volumn估算
+     */
+    double predict_ammonia(const double &seconds, const double &load_in,
+                           const double &load_out, const double &ro,
+                           const double &ra, const double &next_volumn);
+    /*
+     * @brief 计算下一时间步的硝氮浓度
+     * @param seconds 时间秒
+     * @param load_in 硝氮入库负荷 g/s
+     * @param load_out 硝氮出库负荷 g/s
+     * @param ra 硝化速率 g/m3/s
+     * @param rn 反硝化速率 g/m3/s
+     * @param next_volumn 下一时刻水量 1e-8 m3, 由predict_volumn估算
+     */
+    double predict_nitrate(const double &seconds, const double &load_in,
+                           const double &load_out, const double &ra,
+                           const double &rn, const double &next_volumn);
 
   public:
-    Reservoir(const std::string &filename);
+    Reservoir();
     ~Reservoir();
-    /* 水库状态初始化
-       @param wl 水库水位
-       @param c_no 水库有机氮浓度
-       @param c_na 水库氨氮浓度
-       @param c_nn 水库硝态氮浓度
-       @param nitrifi_process 硝化系统
-       @param denitri_process 反硝化系统
-    */
     void init(const double &wl, const double &c_no, const double &c_na,
-              const double &c_nn, Nitrification &nitrifi_process,
-              Denitrification &denitri_process);
-    void add_river_in(River *river);
-    void add_river_out(River *river);
-    // 获取下一时刻河流状态信息并更新current_rivervars
-    // 这里并没有限制时间步，考虑设置时间步防止空读
-    input_output_var get_next_rivervars();
-
-    void update_status(const reservoir_status &updated_status);
-    reservoir_status current_status();
-
-
-    // 所有系统的状态, 提供给同化系统的接口
-    hidden_var current_hidden();
-    void update_hidden(const hidden_var &updated_hidden);
-
-    // 根据当前信息估计下一步水库状态,同时更新当前信息;
-    // 也能够保证通过current_hidden获取所有的变量
-    // 这步更新保证没有同化时模型能够继续跑下去
-    void predict(const double &dt);
-    void write();
-
+              const double &c_nn, const double &T, const double &c_do);
+    res_status get_status();
+    // 更新系统当前先验状态信息
+    void update(res_status &status);
+    /*
+     * @brief 由当前状态向前推进一个时间步
+     * @param dt 天
+     * @param flow_in 入库流量
+     * @param flow_out 出库流量
+     * @param load_org_in 入库有机氮
+     * @param load_org_out 出库有机氮
+     * @param load_amm_in 入库氨氮
+     * @param load_amm_out 出库氨氮
+     * @param load_nit_in 入库硝氮
+     * @param load_nit_out 出库硝氮
+     * @param ro 有机氮反应速率
+     * @param ra 氨氮反应速率
+     * @param rn 硝态氮反应速率
+     */
+    void predict(const double &dt, const double &flow_in,
+                 const double &flow_out, const double &load_org_in,
+                 const double &load_org_out, const double &load_amm_in,
+                 const double &load_amm_out, const double &load_nit_in,
+                 const double &load_nit_out, const double &ro, const double &ra,
+                 const double &rn);
 };
-
 #endif
