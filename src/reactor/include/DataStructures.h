@@ -17,7 +17,51 @@ struct reervoir_status {};
 struct rier_status {};
 
 struct ammon_status {};
-struct nitri_status {};
+
+struct nitri_status {
+    double ra0;
+    double kab1;
+    double foxmin;
+    double c_oxc;
+    double c_oxo;
+    double theta_a;
+    double T_c;
+    nitri_status() = default;
+    /* @brief 创建并初始化硝化系统状态
+     *  @param ra0 零阶反映速率
+     *  @param kab1 20度时的一阶反应速率常数
+     *  @param foxmin 最小氧限制系数
+     *  @param c_oxc 临界溶解氧浓度
+     *  @param c_oxo 最佳溶解氧浓度
+     *  @param theta_a 温度系数
+     *  @param T_c 临界温度
+     */
+    nitri_status(const double &ra0, const double &kab1, const double &foxmin,
+                 const double &c_oxc, const double &c_oxo,
+                 const double &theta_a, const double &T_c)
+        : ra0(ra0), kab1(kab1), foxmin(foxmin), c_oxc(c_oxc), c_oxo(c_oxo),
+          theta_a(theta_a), T_c(T_c){};
+    nitri_status &operator=(const Eigen::VectorXd &v) {
+        if (v.size() == 7) {
+            ra0     = v(0);
+            kab1    = v(1);
+            foxmin  = v(2);
+            c_oxc   = v(3);
+            c_oxo   = v(4);
+            theta_a = v(5);
+            T_c     = v(6);
+            return *this;
+        } else {
+            throw std::length_error(
+                "Length of VectorXd does not match struct:nitri_status");
+        }
+    }
+    operator Eigen::VectorXd() const {
+        Eigen::VectorXd v(7);
+        v << ra0, kab1, foxmin, c_oxc, c_oxo, theta_a, T_c;
+        return v;
+    }
+};
 
 struct deni_status {
     double rn0;
