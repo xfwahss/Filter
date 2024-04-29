@@ -1,32 +1,27 @@
 #include "../include/River.h"
 
-River::River(const std::string& filename): file(filename){
-    flow = 0;
-    c_no = 0;
-    c_na = 0;
-    c_nn = 0;
-};
+River::River(){};
 River::~River(){};
-
-bool River::flush() {
-    // 读取一行数据,跳过了注释和空行
-    bool status = file.readline();
-    if (status){
-        flow = file.data.flow;
-        c_no = file.data.organic;
-        c_na = file.data.ammonia;
-        c_nn = file.data.nitrate;
-        load_organic = flow * c_no;
-        load_ammonia = flow * c_na;
-        load_nitrate = flow * c_nn;
-    }
-    return status;
+void River::init(const double &flow, const double &c_no, const double &c_na,
+                 const double &c_nn) {
+    river_status status(flow, c_no, c_na, c_nn);
+    this->status = status;
 }
 
-double River::get_flow() { return flow; }
+river_status River::get_status() { return status; }
 
-double River::get_load_organic() { return load_organic; }
+void River::update(river_status &status) { this->status = status; }
 
-double River::get_load_ammonia() { return load_ammonia; }
-
-double River::get_load_nitrate() { return load_nitrate; }
+void River::predict(const double &dt, const double &d_flow, const double &d_cno,
+                    const double &d_cna, const double &d_cnn) {
+    if (dt == 1) {
+        double next_flow = status.flow + d_flow;
+        double next_cno  = status.c_no + d_cno;
+        double next_cna  = status.c_na + d_cna;
+        double next_cnn  = status.c_nn + d_cnn;
+        river_status status(next_flow, next_cno, next_cna, next_cnn);
+        update(status);
+    } else {
+        throw "Not implement for dt!=1";
+    }
+}

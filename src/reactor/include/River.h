@@ -1,27 +1,19 @@
 #ifndef RIVER_H
 #define RIVER_H
-#include <fstream>
-#include <string>
-#include "../../io/include/RiverFileIO.h"
+#include "DataStructures.h"
 class River {
   private:
-    double flow;
-    double c_no;
-    double c_na;
-    double c_nn;
-    double load_organic;
-    double load_ammonia;
-    double load_nitrate;
-    RiverFileIO file;
+    river_status status;
 
   public:
-    River(const std::string& filename);
+    River();
     ~River();
-    // 返回true说明产生了新的数据
-    bool flush();
-    double get_flow();
-    double get_load_organic();
-    double get_load_ammonia();
-    double get_load_nitrate();
+    void init(const double &flow, const double &c_no, const double &c_na,
+              const double &c_nn);
+    river_status get_status();
+    void update(river_status &status);
+    // 用于河流状态预测, 给定逐日监测数据差量的平均值预测
+    void predict(const double &dt, const double &d_flow, 
+    const double&d_cno, const double&d_cna, const double&d_cnn);
 };
 #endif
