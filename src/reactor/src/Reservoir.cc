@@ -75,16 +75,16 @@ void Reservoir::update_status(const reservoir_status &updated_status) {
 
 hidden_var Reservoir::current_hidden() {
     reservoir_status res        = this->current_status();
-    nitrify_status nitr         = nitrifi_process.current_status();
-    denitrification_status deni = denitri_process.current_status();
+    nitri_status nitr         = nitrifi_process.get_status();
+    deni_status deni = denitri_process.get_status();
     hidden_var value(res, nitr, deni);
     return value;
 }
 
 void Reservoir::update_hidden(const hidden_var &update_hidden) {
     this->update_status(update_hidden.res_status);
-    nitrifi_process.update_status(update_hidden.nitr_status);
-    denitri_process.update_status(update_hidden.deni_status);
+    nitrifi_process.update(update_hidden.nitri_sta);
+    denitri_process.update(update_hidden.deni_sta);
 }
 
 double Reservoir::predict_volumn(const double &dt) {

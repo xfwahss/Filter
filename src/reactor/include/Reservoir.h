@@ -7,6 +7,12 @@
 #include <cmath>
 #include "../../io/include/ReservoirFileIO.h"
 
+
+/* 与集合卡尔曼滤波兼容，水库中需要实现的方法有：
+Eigen::VectorXd get_status()
+void update(Eigen::VectorXd)
+void predict(const double &dt)
+*/
 struct input_output_var {
     double flow_in;
     double flow_out;
@@ -33,15 +39,16 @@ struct input_output_var {
 
 struct hidden_var {
     reservoir_status res_status;
-    nitrify_status nitr_status;
-    denitrification_status deni_status;
+    nitri_status nitri_sta;
+    deni_status deni_sta;
     hidden_var() = default;
     hidden_var(const reservoir_status &res_status,
-               const nitrify_status &nitr_status,
-               const denitrification_status &deni_status)
-        : res_status(res_status), nitr_status(nitr_status),
-          deni_status(deni_status) {}
+               const nitri_status &nitr_status,
+               const deni_status &deni_sta)
+        : res_status(res_status), nitri_sta(nitr_status),
+          deni_sta(deni_sta) {}
 };
+
 
 class Reservoir {
   private:
