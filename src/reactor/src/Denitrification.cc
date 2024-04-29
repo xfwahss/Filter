@@ -7,17 +7,14 @@ void Denitrification::init(const double &rn0, const double &knb1,
                            const double &Tnc, const double &theta_n,
                            const double &c_noxc, const double &c_noxo,
                            const double &beta) {
-    denitrification_status value(rn0, knb1, Tnc, theta_n, c_noxc, c_noxo);
+    deni_status value(rn0, knb1, Tnc, theta_n, c_noxc, c_noxo);
     coeffecients = value;
     this->beta   = beta;
 }
 
-denitrification_status Denitrification::current_status() {
-    return coeffecients;
-}
+deni_status Denitrification::get_status() { return coeffecients; }
 
-void Denitrification::update_status(
-    const denitrification_status &updated_status) {
+void Denitrification::update(const deni_status &updated_status) {
     coeffecients = updated_status;
 }
 
@@ -43,8 +40,9 @@ double Denitrification::kn1(const double &T) {
     }
 }
 
-double Denitrification::rate(const double &c_ox, const double &T, const double &c_ni){
+double Denitrification::rate(const double &c_ox, const double &T,
+                             const double &c_ni) {
     double fnox = this->fnox(c_ox);
-    double kn1 = this->kn1(T);
+    double kn1  = this->kn1(T);
     return coeffecients.rn0 + fnox * kn1 * c_ni;
 }
