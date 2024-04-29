@@ -13,7 +13,7 @@ class River {
     river_status get_status();
     void update(river_status &status);
     // 用于河流状态预测, 给定逐日监测数据差量的平均值预测
-    void predict(const double &dt, const double &d_flow, 
-    const double&d_cno, const double&d_cna, const double&d_cnn);
+    void predict(const double &dt, const double &d_flow, const double &d_cno,
+                 const double &d_cna, const double &d_cnn);
 };
 #endif
