@@ -53,7 +53,49 @@ struct res_status {
     }
 };
 
-struct rier_status {};
+struct river_status {
+    double flow;
+    double c_no;
+    double c_na;
+    double c_nn;
+    double load_organic;
+    double load_ammonia;
+    double load_nitrate;
+    river_status() = default;
+    /* @brief 创建并初始化河流状态
+     * @param flow 河流流量
+     * @param c_no 河流有机氮浓度
+     * @param c_na 河流氨氮浓度
+     * @param c_nn 河流硝态氮浓度
+     */
+    river_status(const double &flow, const double &c_no, const double &c_na,
+                 const double &c_nn)
+        : flow(flow), c_no(c_no), c_na(c_na), c_nn(c_nn) {
+        load_organic = flow * c_no;
+        load_ammonia = flow * c_na;
+        load_nitrate = flow * c_nn;
+    }
+    river_status &operator=(const Eigen::VectorXd &v) {
+        if (v.size() == 4) {
+            flow         = v(0);
+            c_no         = v(1);
+            c_na         = v(2);
+            c_nn         = v(3);
+            load_organic = flow * c_no;
+            load_ammonia = flow * c_na;
+            load_nitrate = flow * c_nn;
+            return *this;
+        } else {
+            throw std::length_error(
+                "Length of VectorXd does not match struct:river_status");
+        }
+    }
+    operator Eigen::VectorXd() const {
+        Eigen::VectorXd v(7);
+        v << flow, c_no, c_na, c_nn, load_organic, load_ammonia, load_nitrate;
+        return v;
+    }
+};
 
 struct ammon_status {};
 
