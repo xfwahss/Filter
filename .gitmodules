@@ -6,3 +6,6 @@
 	path = src/third_party/o2sci
 	url = https://github.com/awsteiner/o2scl.git
 	branch = main
+[submodule "src/third_party/openxlsx"]
+	path = src/third_party/openxlsx
+	url = https://github.com/troldal/OpenXLSX.git
