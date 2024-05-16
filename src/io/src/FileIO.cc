@@ -29,4 +29,13 @@ bool FileIO::is_blank(const std::string &line){
     }
 
 }
+
+std::string FileIO::get_file_type(){
+    size_t dot_position = filename.find_last_of(".");
+    if (dot_position == std::string::npos){
+        return "Unknow";
+    }
+    std::string extension = filename.substr(dot_position + 1);
+    return extension;
+}
 FileIO::~FileIO() {}

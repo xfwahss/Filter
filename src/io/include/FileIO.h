@@ -17,5 +17,6 @@ class FileIO {
     bool is_comment(const std::string &line);
     // 判断读取到的行是否为空白行
     bool is_blank(const std::string &line);
+    std::string get_file_type();
 };
 #endif
