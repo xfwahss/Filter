@@ -1,14 +1,14 @@
 #ifndef ENSEMBLE_KALMAN_FILTER_H
 #define ENSEMBLE_KALMAN_FILTER_H
+#include "../../io/include/ModelIO.h"
 #include "FilterBase.h"
-#include"../../io/include/FilterIO.h"
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
 
 // 集合卡尔曼滤波模板类，只能实现高斯分布采样
 // 模拟类需要实现 update(接收滤波器更新了的参数)， predict(向前推进)方法,
-// 预测设定为精确预测吧，不确定度由集合卡尔曼滤波类实现
+// 和获取当前状态的方法 预测设定为精确预测吧，不确定度由集合卡尔曼滤波类实现
 // 应该是每融合一次都需要重新采样, 这样才能确保集合的分布是融合过后的
 
 template <class T> class EnsembleKalmanFilter : public FilterBase {
@@ -17,12 +17,15 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     ~EnsembleKalmanFilter();
     void init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H,
               Eigen::VectorXd Q);
-    void step_assimilation(const double &dt, Eigen::MatrixXd measurements,
-                           const Eigen::MatrixXd &R = Eigen::MatrixXd());
+
+    void step_assimilation(const double &dt, const Eigen::VectorXd &z,
+                           const Eigen::MatrixXd &R);
     /*
     每个状态每次只有一个观测值,多个观测值给定R的另写
+    * 改成多个文件协同
     */
-    void batch_assimilation(FilterIO &filterio, const double &dt, Eigen::MatrixXd R);
+    void batch_assimilation(ModelIO *modelio, const double &dt,
+                            const Eigen::MatrixXd &R = Eigen::MatrixXd());
     Eigen::VectorXd get_status();
     Eigen::MatrixXd get_covariance();
 
@@ -34,7 +37,8 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     // 观测矩阵H
     Eigen::MatrixXd H;
 
-    /* 处理观测数据，存储格式为, m * n 矩阵，有m个观测变量，每个观测变量有n个值
+    /* 处理具有多组观测数据的均值和协方差，存储格式为, m * n
+       矩阵，有m个观测变量，每个观测变量有n个值
         @param z 存储观测均值
         @param R 存储观测的协方差矩阵
     */
@@ -45,7 +49,6 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     Eigen::VectorXd generate_process_error();
 
     void ensemble_construct(const int &ensemble_size);
-    // 先归一化再采样,使得采样尽可能均匀
     Eigen::VectorXd multivariate_gaussian_random(Eigen::VectorXd &status,
                                                  Eigen::MatrixXd &covariance);
     void sample();
@@ -139,19 +142,10 @@ void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
 
 template <class T>
 void EnsembleKalmanFilter<T>::step_assimilation(const double &dt,
-                                                Eigen::MatrixXd measurements,
+                                                const Eigen::VectorXd &z,
                                                 const Eigen::MatrixXd &R) {
     predict(dt);
-    if (R.size() == 0) {
-        Eigen::VectorXd z;
-        Eigen::MatrixXd R0;
-        process_measurements(measurements, z, R0);
-        update(z, R0);
-    } else {
-        Eigen::VectorXd z = Eigen::Map<Eigen::VectorXd>(
-            measurements.data(), measurements.rows() * measurements.cols());
-        update(z, R);
-    }
+    update(z, R);
 }
 
 template <class T>
@@ -212,22 +206,33 @@ template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::get_status() {
     return FilterBase::X;
 }
 
-template <class T>
-Eigen::MatrixXd EnsembleKalmanFilter<T>::get_covariance() {
+template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::get_covariance() {
     return FilterBase::P;
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO &filterio, const double&dt, 
-Eigen::MatrixXd R) {
-    int columns = filterio.get_columns();
-    int measurement_nums = filterio.get_measurement_nums();
-    filterio.write_vectorxd_diagonal_matrixd(X, P);
-    for (int i = 0; i < measurement_nums; i++) {
-        Eigen::MatrixXd z(1, columns);
-        filterio.readline_to_matrixxd(z);
-        this->step_assimilation(dt, z, R);
-        filterio.write_vectorxd_diagonal_matrixd(X, P);
+void EnsembleKalmanFilter<T>::batch_assimilation(ModelIO *modelio,
+                                                 const double &dt,
+                                                 const Eigen::MatrixXd &R) {
+    Eigen::VectorXd z;
+    Eigen::MatrixXd R_file;
+    modelio->write_headers();
+    if (R.size() == 0) {
+        modelio->get_obs(z, R_file);
+        while (z.size() != 0) {
+            this->step_assimilation(dt, z, R_file);
+            modelio->write_x(X);
+            modelio->write_P(P);
+            modelio->get_obs(z, R_file);
+        }
+    } else {
+        modelio->get_obs(z, R_file);
+        while (z.size() != 0) {
+            this->step_assimilation(dt, z, R);
+            modelio->write_x(X);
+            modelio->write_P(P);
+            modelio->get_obs(z, R_file);
+        }
     }
 }
 #endif
