@@ -1,7 +1,7 @@
 #include "../include/ExcelIO.h"
 
 int main() { 
-    ExcelIO exce("test.xlsx", "w"); 
+    ExcelIO exce("../test/output/TestExcelWrite.xlsx", "w"); 
     Eigen::VectorXd x(8);
     Eigen::VectorXd y(7);
     x << 0, 2, 3, 4, 5, 6, 7, 8;
@@ -19,5 +19,8 @@ int main() {
     ExcelIO test_read("../test/data/TestExcelRead.xlsx");
     auto v = test_read.read_row("Sheet1", 1);
     std::cout << v << std::endl;
+    v = test_read.read_row("Sheet1", 2);
+    std::cout << v << std::endl;
+    v = exce.read_row("Sheet3", 4);
     return 0;
 }

@@ -1,5 +1,6 @@
 #include "../include/ExcelIO.h"
 #include <exception>
+#include <sstream>
 #include <iostream>
 
 ExcelIO::ExcelIO(const std::string &filename, const std::string &mode)
@@ -49,12 +50,31 @@ int ExcelIO::get_columns(const std::string &sheet_name) {
 
 Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name,
                                   const int &row) {
+    int max_rows = get_rows(sheet_name);
+    if(row > max_rows){
+        throw std::invalid_argument("Max rows were exceeded");
+    }
     int nums = get_columns(sheet_name);
     auto wks = file.workbook().worksheet(sheet_name);
     Eigen::VectorXd value(nums);
     for (int i = 0; i < nums; ++i) {
-        double v = wks.cell(row, i + 1).value();
-        value(i) = v;
+        std::string value_type = wks.cell(row, i + 1).value().typeAsString();
+        if(value_type == "empty"){
+            value(i) = -999;
+        } else if (value_type == "integer"){
+            int v = wks.cell(row, i + 1).value();
+            value(i) = double(v);
+        } else if (value_type == "float"){
+            float v = wks.cell(row, i + 1).value();
+            value(i) = double(v);
+        } else{
+            std::stringstream ss;
+            ss << "Expected int or float, but received:"
+               << value_type
+               << " ,at row:" << row << ", column:" << i + 1
+               << std::endl; 
+            throw std::invalid_argument(ss.str());
+        }
     }
     return value;
 }
