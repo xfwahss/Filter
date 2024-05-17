@@ -14,6 +14,7 @@ include_directories(src/third_party/eigen)
 add_subdirectory(src/io)
 add_subdirectory(src/filter)
 add_subdirectory(src/reactor)
+add_subdirectory(src/model)
 
 
 
