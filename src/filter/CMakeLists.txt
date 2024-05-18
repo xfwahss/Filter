@@ -1,6 +1,11 @@
-include_directories(./include)
-aux_source_directory(./src DIR_LIB_SRCS)
-add_library(filter SHARED ${DIR_LIB_SRCS})
+project(filter)
+message("Entering project ${PROJECT_NAME}")
+
+# include_directories(./include)
+aux_source_directory(src DIR_LIB_SRCS)
+add_library(${PROJECT_NAME} SHARED ${DIR_LIB_SRCS})
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_link_libraries(${PROJECT_NAME} PRIVATE io)
 
 
 

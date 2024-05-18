@@ -10,22 +10,22 @@ if __name__ == "__main__":
     if(not os.path.exists(output_dir)):
         os.makedirs(output_dir, exist_ok=True)
     # 进入目录完成编译步骤
-    compile = True
+    compile = False
     if (compile == True):
         os.chdir("../../build")
         subprocess.run(["cmake", ".."])
         subprocess.run("make")
         os.chdir("../test/scripts")
 
-
+    obs_error = 0.01
     x = np.arange(0, 10, 0.1)
     true_y = np.sin(x) + 3 * np.sin(2 * x) + 0.5 * x
-    obs_y = true_y + np.random.normal(0, 1, len(x))
+    obs_y = true_y + np.random.normal(0, obs_error, len(x))
 
     init_X = np.array([0])
     init_P = np.array([[10]])
     H = np.array([[1]])
-    Q = np.array([0.01])
+    Q = np.array([10])
 
 
     df_init_x = pd.DataFrame(init_X, index=['x'])
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     df_h = pd.DataFrame(H)
     df_q = pd.DataFrame(Q)
     df_obs = pd.DataFrame(obs_y)
-    df_r = pd.DataFrame(np.ones_like(x) * 0.25)
+    df_r = pd.DataFrame(np.ones_like(x) * obs_error)
     obs_true_diff = np.sqrt(np.mean((true_y - obs_y)**2))
 
     with pd.ExcelWriter("../data/TestModelIO_in.xlsx") as f:
@@ -54,8 +54,10 @@ if __name__ == "__main__":
     y_ana = df_ana['x'].values
     error_ana = df_P['x'].values
 
-    ax.plot(x, true_y)
-    ax.plot(x, obs_y, 'ro-')
-    ax.plot(x, y_ana)
+    ax.plot(x, true_y, label='True')
+    ax.plot(x, obs_y, 'ro-', label="Obs")
+    ax.plot(x, y_ana, 'g', label='update')
     ax.plot(x, error_ana)
-    fig.savefig("../data/test.png", dpi=500)
+
+    # fig.savefig("../data/test.png", dpi=500)
+    plt.show()
