@@ -211,27 +211,27 @@ template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::get_covariance() {
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *modelio,
+void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio,
                                                  const double &dt,
                                                  const Eigen::MatrixXd &R) {
     Eigen::VectorXd z;
     Eigen::MatrixXd R_file;
-    modelio->write_headers();
+    filterio->write_headers();
     if (R.size() == 0) {
-        modelio->get_obs(z, R_file);
+        filterio->get_obs(z, R_file);
         while (z.size() != 0) {
             this->step_assimilation(dt, z, R_file);
-            modelio->write_x(X);
-            modelio->write_P(P);
-            modelio->get_obs(z, R_file);
+            filterio->write_x(X);
+            filterio->write_P(P);
+            filterio->get_obs(z, R_file);
         }
     } else {
-        modelio->get_obs(z, R_file);
+        filterio->get_obs(z, R_file);
         while (z.size() != 0) {
             this->step_assimilation(dt, z, R);
-            modelio->write_x(X);
-            modelio->write_P(P);
-            modelio->get_obs(z, R_file);
+            filterio->write_x(X);
+            filterio->write_P(P);
+            filterio->get_obs(z, R_file);
         }
     }
 }
