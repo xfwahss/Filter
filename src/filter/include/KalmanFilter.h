@@ -2,8 +2,6 @@
 #define KALMAN_FILTER_H
 #include"../../io/include/FilterIO.h"
 #include<Eigen/Dense>
-#include<iostream>
-#include<string>
 
 class KalmanFilter {
 public:

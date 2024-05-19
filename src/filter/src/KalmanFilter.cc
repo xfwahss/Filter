@@ -49,22 +49,22 @@ void KalmanFilter::batch_filter(const int &counts, const double *measurements) {
 }
 
 void KalmanFilter::batch_filter(FilterIO &measurements) {
-    int columns = measurements.get_columns();
-    int measurement_nums = measurements.get_measurement_nums();
-    write(measurements);
-    for (int i = 0; i < measurement_nums; i++) {
-        this->predict();
-        Eigen::VectorXd measurement(columns);
-        measurements.readline_to_vectorxd(measurement);
-        this->update(measurement);
-        Eigen::VectorXd estimated_state = this->get_state();
-        Eigen::MatrixXd covariance = this->get_covariance();
-        write(measurements);
+    // int columns = measurements.get_columns();
+    // int measurement_nums = measurements.get_measurement_nums();
+    // write(measurements);
+    // for (int i = 0; i < measurement_nums; i++) {
+    //     this->predict();
+    //     Eigen::VectorXd measurement(columns);
+    //     measurements.readline_to_vectorxd(measurement);
+    //     this->update(measurement);
+    //     Eigen::VectorXd estimated_state = this->get_state();
+    //     Eigen::MatrixXd covariance = this->get_covariance();
+    //     write(measurements);
         // std::cout << "Estimated State: " << estimated_state << std::endl;
         // std::cout << "Covariance: " << covariance << std::endl;
-    }
+    // }
 }
 
 void KalmanFilter::write(FilterIO &results) {
-    results.write_vectorxd_diagonal_matrixd(x, P);
+    // results.write_vectorxd_diagonal_matrixd(x, P);
 }

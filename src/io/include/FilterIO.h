@@ -1,15 +1,15 @@
-#ifndef MODELIO_H
-#define MODELIO_H
+#ifndef FILTER_IO_H
+#define FILTER_IO_H
 #include "ExcelIO.h"
-class ModelIO {
+class FilterIO {
   private:
     ExcelIO file_in;
     ExcelIO file_out;
     int index;
 
   public:
-    ModelIO(const std::string &filename_in, const std::string &filename_out);
-    ~ModelIO();
+    FilterIO(const std::string &filename_in, const std::string &filename_out);
+    ~FilterIO();
     Eigen::VectorXd get_init_X();
     Eigen::MatrixXd get_init_P();
     Eigen::MatrixXd get_H();

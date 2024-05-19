@@ -1,39 +1,39 @@
-#include "../include/ModelIO.h"
+#include "../include/FilterIO.h"
 
 // 负责状态观测步，用于将观测数据由文件读入转化为均值和方差
 // 初始状态读取 和 相关向量的给定
-ModelIO::ModelIO(const std::string &filename_in,
+FilterIO::FilterIO(const std::string &filename_in,
                  const std::string &filename_out)
     : file_in(filename_in, "r"), file_out(filename_out, "w") {
     index = 0;
 };
-ModelIO::~ModelIO(){};
-Eigen::VectorXd ModelIO::get_init_X() {
+FilterIO::~FilterIO(){};
+Eigen::VectorXd FilterIO::get_init_X() {
     // 第一列存储变量的介绍，第二列存储数据
     Eigen::VectorXd X = file_in.read_column("Init_X", 2);
     return X;
 }
-Eigen::MatrixXd ModelIO::get_init_P() {
+Eigen::MatrixXd FilterIO::get_init_P() {
     // 从最左上角存储数据
     int dims          = file_in.get_rows("Init_X");
     Eigen::MatrixXd P = file_in.read_block("Init_P", 1, 1, dims, dims);
     return P;
 }
-Eigen::MatrixXd ModelIO::get_H() {
+Eigen::MatrixXd FilterIO::get_H() {
     // 从最左上角存储数据
     int columns       = file_in.get_columns("H");
     int rows          = file_in.get_rows("H");
     Eigen::MatrixXd H = file_in.read_block("H", 1, 1, rows, columns);
     return H;
 }
-Eigen::VectorXd ModelIO::get_Q() {
+Eigen::VectorXd FilterIO::get_Q() {
     // 第一列存储变量的介绍，第二列存储数据, 给单个预测粒子添加方差
     Eigen::VectorXd Q = file_in.read_column("Q", 2);
     return Q;
 }
 // 读取观测数据，生成观测平均值和协方差, 设置为虚函数，便于重写
 // 要保证z比R先读，读取R时会更新索引
-Eigen::VectorXd ModelIO::next_z(const int &start_index) {
+Eigen::VectorXd FilterIO::next_z(const int &start_index) {
     Eigen::VectorXd value;
     if (start_index + index > file_in.get_rows("Obs")) {
         return value;
@@ -43,7 +43,7 @@ Eigen::VectorXd ModelIO::next_z(const int &start_index) {
     }
 }
 // 与Obs同时同步，不更新index，index由next_R更新
-Eigen::MatrixXd ModelIO::next_R(const int &start_index) {
+Eigen::MatrixXd FilterIO::next_R(const int &start_index) {
     Eigen::MatrixXd value;
     if (start_index + index > file_in.get_rows("R")) {
         return value;
@@ -58,13 +58,13 @@ Eigen::MatrixXd ModelIO::next_R(const int &start_index) {
         return value;
     }
 }
-void ModelIO::get_obs(Eigen::VectorXd &z, Eigen::MatrixXd &R,
+void FilterIO::get_obs(Eigen::VectorXd &z, Eigen::MatrixXd &R,
                               const int &start_index) {
     std::cout << "Processing measurement value of index: " << index << std::endl;
     z = next_z(start_index);
     R = next_R(start_index);
 }
-void ModelIO::write_headers() {
+void FilterIO::write_headers() {
     int rows = file_in.get_rows("Init_X");
     file_out.write_cell_string("Index", "X", 1, 1);
     file_out.write_cell_string("Index", "P", 1, 1);
@@ -75,10 +75,10 @@ void ModelIO::write_headers() {
     }
 }
 // 记录同化的数据结果
-void ModelIO::write_x(const Eigen::VectorXd &x) {
+void FilterIO::write_x(const Eigen::VectorXd &x) {
     file_out.write_row(x, "X", index + 1, 2);
 }
-void ModelIO::write_P(const Eigen::VectorXd &P) {
+void FilterIO::write_P(const Eigen::VectorXd &P) {
     int nums = P.cols();
     Eigen::VectorXd values(nums);
     for (int i = 0; i < nums; ++i) {

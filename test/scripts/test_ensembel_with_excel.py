@@ -4,28 +4,33 @@ import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
+from plotstyles.fonts import global_fonts
 
 if __name__ == "__main__":
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(file_dir)
     output_dir = "../output"
     if(not os.path.exists(output_dir)):
         os.makedirs(output_dir, exist_ok=True)
     # 进入目录完成编译步骤
-    compile = False
+    compile = True
     if (compile == True):
         os.chdir("../../build")
         subprocess.run(["cmake", ".."])
         subprocess.run("make")
         os.chdir("../test/scripts")
 
-    obs_error = 0.01
+    obs_error = 0.10
     x = np.arange(0, 10, 0.1)
-    true_y = np.sin(x) + 3 * np.sin(2 * x) + 0.5 * x
+    # true_y = np.sin(x) + 3 * np.sin(2 * x) + 0.5 * x
+    # true_y  = np.ones_like(x) * 3
+    true_y = 0.02 * x + 3
     obs_y = true_y + np.random.normal(0, obs_error, len(x))
 
-    init_X = np.array([0])
+    init_X = np.array([obs_y[0]])
     init_P = np.array([[10]])
     H = np.array([[1]])
-    Q = np.array([10])
+    Q = np.array([0.01])
 
 
     df_init_x = pd.DataFrame(init_X, index=['x'])
@@ -57,7 +62,11 @@ if __name__ == "__main__":
     ax.plot(x, true_y, label='True')
     ax.plot(x, obs_y, 'ro-', label="Obs")
     ax.plot(x, y_ana, 'g', label='update')
-    ax.plot(x, error_ana)
+    ax.set_ylim(0, 4)
+
+    ax2 = ax.twinx()
+    ax2.plot(x, error_ana)
+    ax2.set_ylim(0, 1)
 
     # fig.savefig("../data/test.png", dpi=500)
     plt.show()

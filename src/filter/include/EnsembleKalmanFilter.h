@@ -1,6 +1,6 @@
 #ifndef ENSEMBLE_KALMAN_FILTER_H
 #define ENSEMBLE_KALMAN_FILTER_H
-#include "../../io/include/ModelIO.h"
+#include "../../io/include/FilterIO.h"
 #include "FilterBase.h"
 #include <Eigen/Dense>
 #include <random>
@@ -24,7 +24,7 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     每个状态每次只有一个观测值,多个观测值给定R的另写
     * 改成多个文件协同
     */
-    void batch_assimilation(ModelIO *modelio, const double &dt,
+    void batch_assimilation(FilterIO *modelio, const double &dt,
                             const Eigen::MatrixXd &R = Eigen::MatrixXd());
     Eigen::VectorXd get_status();
     Eigen::MatrixXd get_covariance();
@@ -211,7 +211,7 @@ template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::get_covariance() {
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::batch_assimilation(ModelIO *modelio,
+void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *modelio,
                                                  const double &dt,
                                                  const Eigen::MatrixXd &R) {
     Eigen::VectorXd z;
