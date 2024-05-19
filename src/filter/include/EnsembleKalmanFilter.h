@@ -235,4 +235,48 @@ void EnsembleKalmanFilter<T>::batch_assimilation(ModelIO *modelio,
         }
     }
 }
+
+// 提供抽象类提供作为集合卡尔曼滤波的模板类基类
+class EnsembleModel {
+  private:
+    Eigen::VectorXd status;
+
+  protected:
+    // 状态不变更新
+    Eigen::VectorXd constant_predict(const Eigen::VectorXd &s,
+                                     const double &dt) {
+        return s;
+    }
+    /* @brief 假设一阶导数不变的参数更新
+     * @param s VectorXd的数据存储方式应该为 [状态， 1阶导数]
+     * @param dt 预测时间间隔
+     */
+    Eigen::Vector2d const_1derivate_predict(const Eigen::Vector2d &s,
+                                            const double &dt) {
+        Eigen::Vector2d next;
+        next(1) = s(1);
+        next(0) = s(0) + s(1) * dt;
+        return next;
+    }
+    // 二阶导数不变更新
+    /* @brief 假设二阶导数不变的参数更新
+    * @param s Vector3d的存储格式为 [状态, 一阶导数, 二阶导数]
+    * @param dt 预测时间间隔
+    */
+    Eigen::Vector3d const_2derivate_predict(const Eigen::Vector3d &s,
+                                            const double &dt) {
+        Eigen::Vector3d next;
+        next(2) = s(2);
+        next(1) = s(1) + s(2) * dt;
+        next(0) = s(0) + s(1) * dt + 0.5 * s(2) * dt * dt;
+        return s;
+    }
+
+  public:
+    Eigen::VectorXd get_status() { return status; }
+    void update(Eigen::VectorXd &status) { this->status = status; }
+    // 子类必须实现predict的方法
+    virtual void predict(const double &dt) = 0;
+};
+
 #endif
