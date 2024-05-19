@@ -111,6 +111,10 @@ std::string ExcelIO::read_cell_string(const std::string &sheet_name,
     return s;
 }
 
+void ExcelIO::remove_sheet(const std::string &sheet_name){
+    file.workbook().deleteSheet(sheet_name);
+}
+
 void ExcelIO::write_row(const Eigen::VectorXd &value,
                         const std::string &sheet_name, const int &row,
                         const int &start_column) {
