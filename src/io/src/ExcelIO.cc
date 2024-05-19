@@ -1,5 +1,4 @@
 #include "../include/ExcelIO.h"
-#include <exception>
 #include <iostream>
 #include <sstream>
 
@@ -33,8 +32,6 @@ bool ExcelIO::is_string_invector(const std::string &str,
         std::find(vec.begin(), vec.end(), str);
     return it != vec.end();
 }
-void ExcelIO::read() {}
-void ExcelIO::write() {}
 
 int ExcelIO::get_rows(const std::string &sheet_name) {
     auto wks = file.workbook().worksheet(sheet_name);

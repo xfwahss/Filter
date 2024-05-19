@@ -3,7 +3,6 @@
 #include "FileIO.h"
 #include <Eigen/Dense>
 #include <OpenXLSX.hpp>
-#include <map>
 #include <vector>
 
 class ExcelIO : public FileIO {
@@ -36,8 +35,6 @@ class ExcelIO : public FileIO {
     // 对于读的数据A1，A2单元格分别存储实际存储数据的行数的列数
     int get_rows(const std::string &sheet_name);
     int get_columns(const std::string &sheet_name);
-    void read() override;
-    void write() override;
 
   protected:
     // 以double类型读取单元格数据
