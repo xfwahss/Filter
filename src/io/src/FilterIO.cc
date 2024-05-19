@@ -78,7 +78,7 @@ void FilterIO::write_headers() {
 void FilterIO::write_x(const Eigen::VectorXd &x) {
     file_out.write_row(x, "X", index + 1, 2);
 }
-void FilterIO::write_P(const Eigen::VectorXd &P) {
+void FilterIO::write_P(const Eigen::MatrixXd &P) {
     int nums = P.cols();
     Eigen::VectorXd values(nums);
     for (int i = 0; i < nums; ++i) {

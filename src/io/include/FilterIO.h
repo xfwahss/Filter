@@ -24,6 +24,6 @@ class FilterIO {
     void write_headers();
     // 记录同化的数据结果
     void write_x(const Eigen::VectorXd &x);
-    void write_P(const Eigen::VectorXd &P);
+    void write_P(const Eigen::MatrixXd &P);
 };
 #endif
