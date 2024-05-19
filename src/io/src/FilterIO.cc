@@ -73,6 +73,7 @@ void FilterIO::write_headers() {
         file_out.write_cell_string(s, "X", 1, i + 2);
         file_out.write_cell_string(s, "P", 1, i + 2);
     }
+    file_out.remove_sheet("Sheet1");
 }
 // 记录同化的数据结果
 void FilterIO::write_x(const Eigen::VectorXd &x) {
