@@ -2,18 +2,12 @@
 #include "../../io/include/ModelIO.h"
 
 // 负责粒子更新步, 将状态向量分配给机理模型
-class Model {
-  private:
-    Eigen::VectorXd status;
-
+class Model:EnsembleModel {
   public:
-    Eigen::VectorXd get_status() { return status; }
-    void update(Eigen::VectorXd &status) { this->status = status; }
     void predict(const double &dt) {
-        // for (int i = 0; i < status.size(); ++i) {
-        //     status(i) += dt;
-        // }
-        // status 不变
+      Eigen::VectorXd s = get_status();
+      s = constant_predict(s, dt);
+      update(s);
     }
 };
 
