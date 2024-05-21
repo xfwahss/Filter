@@ -6,40 +6,39 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from plotstyles.fonts import global_fonts
 from plotstyles import tools
+import utils
 
-if __name__ == "__main__":
-    # 进入脚本目录并创建相应的输出结果目录
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(file_dir)
-    output_dir = "../output"
-    if(not os.path.exists(output_dir)):
-        os.makedirs(output_dir, exist_ok=True)
-
-    # 进入目录完成编译步骤
-    compile = True
-    if (compile == True):
+def compile(toggle=True):
+    if(toggle):
         os.chdir("../../build")
         subprocess.run(["cmake", ".."])
         subprocess.run("make")
         os.chdir("../test/scripts")
+    else:
+        print("Compile skipped!")
 
-    obs_error = 1
-    v_proc_error = 0.3
-    x_proc_error = 0.01
+if __name__ == "__main__":
+    # 进入脚本目录并创建相应的输出结果目录
+    utils.cd_file_dir(__file__)
+    output_dir = "../output"
+    if(not os.path.exists(output_dir)):
+        os.makedirs(output_dir, exist_ok=True)
+    # 进入目录完成编译步骤
+    utils.compile(False)
 
+    obs_error, v_proc_error, x_proc_error = 1, 0.3, 0.01
     a = 0.2
+
     t = np.arange(0, 20, 0.1)
     true_v = 2 + a * t
     true_x = (2 + 0.5 * a * t) * t
     obs_x = true_x + np.random.normal(0, obs_error, len(t))
 
 
-
-    init_X = np.array([[obs_x[0]], [0]])
-    init_P = np.array([[obs_error, 0], [0, 10]])
+    init_X = np.array([[obs_x[0]], [2]])
+    init_P = np.array([[obs_error, 0], [0, 3]])
     H = np.array([[1, 0]])
     Q = np.array([[x_proc_error], [v_proc_error]])
-
 
     df_init_x = pd.DataFrame(init_X, index=['x', 'v'])
     df_init_p = pd.DataFrame(init_P)
@@ -79,9 +78,11 @@ if __name__ == "__main__":
     v_ax.plot(t, v_ana, label='Filtered_V')
     err_ax.plot(t, error_ana)
     v_err_ax.plot(t, v_error_ana)
-
-
     ax.legend()
     v_ax.legend()
+    fig.savefig("../../doc/velocity_tracker.jpg", dpi=500)
+
+
+
 
     plt.show()
