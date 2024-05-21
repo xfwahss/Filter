@@ -7,6 +7,13 @@
 ```bash
 git clone --recursive https://gitee.com/xfwahss/Filter.git
 ```
+### 代码编译(Windows)
+```bash
+cd Filter/build
+cmake -G "MinGW Makefiles"  -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=make .. # windows
+cmake .. #linux
+make
+```
 
 ## 集合卡尔曼滤波测试
 *测试文件编译及运行*
