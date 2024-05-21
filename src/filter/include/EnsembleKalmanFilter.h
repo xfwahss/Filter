@@ -37,14 +37,6 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     // 观测矩阵H
     Eigen::MatrixXd H;
 
-    /* 处理具有多组观测数据的均值和协方差，存储格式为, m * n
-       矩阵，有m个观测变量，每个观测变量有n个值
-        @param z 存储观测均值
-        @param R 存储观测的协方差矩阵
-    */
-    void process_measurements(Eigen::MatrixXd mesurements, Eigen::VectorXd &z,
-                              Eigen::MatrixXd &R);
-
     // 根据给定的方差生成一个状态的预测随机误差
     Eigen::VectorXd generate_process_error();
 
@@ -109,27 +101,6 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
     cov /= ensemble.size() - 1;
     FilterBase::X = mean;
     FilterBase::P = cov;
-}
-
-template <class T>
-void EnsembleKalmanFilter<T>::process_measurements(Eigen::MatrixXd measurements,
-                                                   Eigen::VectorXd &z,
-                                                   Eigen::MatrixXd &R) {
-    int var_nums         = measurements.rows();
-    Eigen::VectorXd mean = Eigen::VectorXd::Zero(var_nums);
-    Eigen::MatrixXd cov  = Eigen::MatrixXd::Zero(var_nums, var_nums);
-
-    for (int i = 0; i < measurements.cols(); i++) {
-        mean += measurements.col(i);
-    }
-    mean /= measurements.cols();
-    for (int i = 0; i < measurements.cols(); ++i) {
-        Eigen::VectorXd diff = measurements.col(i) - mean;
-        cov += diff * diff.transpose();
-    }
-    cov /= measurements.cols() - 1;
-    z = mean;
-    R = cov;
 }
 
 template <class T>
