@@ -7,6 +7,7 @@
 class RiverSystem {
   private:
     std::map<std::string, River *> rivers;
+    // 水系状态仅存储 [总流量,有机氮,氨氮负荷,硝氮负荷]
     Eigen::VectorXd status;
     Eigen::VectorXd sum();
 
@@ -15,8 +16,8 @@ class RiverSystem {
     ~RiverSystem();
     void add_river(std::string river_name, River &river);
     Eigen::VectorXd get_status();
-    void update(Eigen::VectorXd status);
-    void predict(const double &dt);
+    // Eigen 给定每一条河流 flow, c_organci, c_ammonia, c_nitrate, 依次
+    void update(Eigen::VectorXd rivers_status);
     friend std::ostream &operator<<(std::ostream &os,
                                     const RiverSystem &rivers);
 };
