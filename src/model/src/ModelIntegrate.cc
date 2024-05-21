@@ -50,36 +50,21 @@ class ModelIO : public FilterIO {
     ModelIO(const std::string &filename_in, const std::string &filename_out)
         : FilterIO(filename_in, filename_out) {}
     ~ModelIO() {}
-    void get_obs(Eigen::VectorXd &z, Eigen::MatrixXd &R,
-                 const int &start_index = 2) {
-        if (index + start_index > file_in.get_rows("Rivers_in")) {
-            Eigen::VectorXd a;
-            Eigen::MatrixXd b;
-            z = a;
-            R = b;
-        } else {
+    void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
+                  const int &index) {
+        Eigen::VectorXd in_value  = file.read_row("Rivers_in", 2 + index, 2);
+        Eigen::VectorXd out_value = file.read_row("Rivers_out", 2 + index, 2);
+        Eigen::VectorXd res_value = file.read_row("Reservoir", 2 + index, 2);
+        Eigen::VectorXd value(5);
+        value << in_value(0), in_value(1), out_value(0), out_value(1),
+            res_value(0);
 
-            std::cout << "Processing measurement value of index: " << index
-                      << std::endl;
-            Eigen::VectorXd in_value =
-                file_in.read_row("Rivers_in", start_index + index, 2);
-            Eigen::VectorXd out_value =
-                file_in.read_row("Rivers_out", start_index + index, 2);
-            Eigen::VectorXd res_value =
-                file_in.read_row("Reservoir", start_index + index, 2);
-            Eigen::VectorXd value(5);
-            value << in_value(0), in_value(1), out_value(0), out_value(1),
-                res_value(0);
-
-            Eigen::MatrixXd r_value;
-            r_value = file_in.read_block("R", 1, 1, 5, 5);
-            z       = value;
-            R       = r_value;
-            update_index();
-        }
+        Eigen::MatrixXd r_value;
+        r_value = file.read_block("R", 1, 1, 5, 5);
+        z       = value;
+        R       = r_value;
     }
 };
-
 int main() {
     EnsembleKalmanFilter<Model> enkal(2000);
     ModelIO modelio("../test/data/Miyun_Model.xlsx",
