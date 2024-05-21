@@ -2,7 +2,7 @@
 #define FILTER_IO_H
 #include "ExcelIO.h"
 class FilterIO {
-  private:
+  protected:
     ExcelIO file_in;
     ExcelIO file_out;
     int index;
@@ -14,6 +14,7 @@ class FilterIO {
     Eigen::MatrixXd get_init_P();
     Eigen::MatrixXd get_H();
     Eigen::VectorXd get_Q();
+    void update_index();
     // 读取观测数据，生成观测平均值和协方差, 设置为虚函数，便于重写
     // 要保证z比R先读，读取R时会更新索引
     virtual Eigen::VectorXd next_z(const int &start_index = 2);

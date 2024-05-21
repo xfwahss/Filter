@@ -87,3 +87,7 @@ void FilterIO::write_P(const Eigen::MatrixXd &P) {
     }
     file_out.write_row(values, "P", index + 1, 2);
 }
+
+void FilterIO::update_index(){
+    ++index;
+}
