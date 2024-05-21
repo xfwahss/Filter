@@ -2,29 +2,48 @@
 #define FILTER_IO_H
 #include "ExcelIO.h"
 class FilterIO {
-  protected:
+  private:
     ExcelIO file_in;
     ExcelIO file_out;
     int index;
+    int total_nums;
 
   public:
     FilterIO(const std::string &filename_in, const std::string &filename_out);
     ~FilterIO();
-    Eigen::VectorXd get_init_X();
-    Eigen::MatrixXd get_init_P();
-    Eigen::MatrixXd get_H();
-    Eigen::VectorXd get_Q();
-    void update_index();
-    // 读取观测数据，生成观测平均值和协方差, 设置为虚函数，便于重写
-    // 要保证z比R先读，读取R时会更新索引
-    virtual Eigen::VectorXd next_z(const int &start_index = 2);
-    // 与Obs同时同步，不更新index，index由next_R更新
-    virtual Eigen::MatrixXd next_R(const int &start_index = 2);
-    virtual void get_obs(Eigen::VectorXd &z, Eigen::MatrixXd &R,
-                         const int &start_index = 2);
+    void init(const std::string &filename_in, const std::string &filename_out);
+    int get_index();
+    void increment_index();
+    Eigen::VectorXd get_init_X(const std::string &sheet_name = "Init_X",
+                               const int &column = 2, const int &start_row = 1,
+                               const int &element_nums = 0);
+
+    Eigen::MatrixXd get_init_P(const std::string &sheet_name = "Init_P",
+                               const int &start_row          = 1,
+                               const int &start_column       = 1,
+                               const int &nums               = 0);
+
+    Eigen::MatrixXd get_H(const std::string &sheet_name = "H",
+                          const int &start_row = 1, const int &start_column = 1,
+                          const int &rows = 0, const int &columns = 0);
+
+    Eigen::VectorXd get_Q(const std::string &sheet_name = "Q",
+                          const int &column = 2, const int &start_row = 1,
+                          const int &element_nums = 0);
+
+    void write_x(const Eigen::VectorXd &x, const std::string &sheet_name = "X",
+                 const int &start_row = 2, const int &start_column = 2);
+
+    void write_P(const Eigen::MatrixXd &P, const std::string &sheet_name = "P",
+                 const int &start_row = 2, const int &start_column = 2);
+
+    // 读取的数据存入z和R,
+    // index表明第index次观测
+    // 传入file参数提供ExcelIO的文件读写方法
+    virtual void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
+                          const int &index);
+    void read(Eigen::VectorXd &z, Eigen::MatrixXd &R);
     void write_headers();
     // 记录同化的数据结果
-    void write_x(const Eigen::VectorXd &x);
-    void write_P(const Eigen::MatrixXd &P);
 };
 #endif

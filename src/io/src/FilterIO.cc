@@ -3,67 +3,49 @@
 // 负责状态观测步，用于将观测数据由文件读入转化为均值和方差
 // 初始状态读取 和 相关向量的给定
 FilterIO::FilterIO(const std::string &filename_in,
-                 const std::string &filename_out)
-    : file_in(filename_in, "r"), file_out(filename_out, "w") {
-    index = 0;
+                   const std::string &filename_out)
+    : file_in(filename_in, "r"), file_out(filename_out, "w"), index(0) {
+    total_nums = file_in.read_column("Params", 2)(0);
 };
 FilterIO::~FilterIO(){};
-Eigen::VectorXd FilterIO::get_init_X() {
+void FilterIO::increment_index() { ++index; }
+int FilterIO::get_index() { return index; }
+
+Eigen::VectorXd FilterIO::get_init_X(const std::string &sheet_name,
+                                     const int &column, const int &start_row,
+                                     const int &element_nums) {
     // 第一列存储变量的介绍，第二列存储数据
-    Eigen::VectorXd X = file_in.read_column("Init_X", 2);
+    Eigen::VectorXd X =
+        file_in.read_column(sheet_name, column, start_row, element_nums);
     return X;
 }
-Eigen::MatrixXd FilterIO::get_init_P() {
+Eigen::MatrixXd FilterIO::get_init_P(const std::string &sheet_name,
+                                     const int &start_row,
+                                     const int &start_column, const int &nums) {
+    int dims = nums == 0 ? file_in.get_rows(sheet_name) : nums;
     // 从最左上角存储数据
-    int dims          = file_in.get_rows("Init_X");
-    Eigen::MatrixXd P = file_in.read_block("Init_P", 1, 1, dims, dims);
+    Eigen::MatrixXd P =
+        file_in.read_block(sheet_name, start_row, start_column, dims, dims);
     return P;
 }
-Eigen::MatrixXd FilterIO::get_H() {
-    // 从最左上角存储数据
-    int columns       = file_in.get_columns("H");
-    int rows          = file_in.get_rows("H");
-    Eigen::MatrixXd H = file_in.read_block("H", 1, 1, rows, columns);
+Eigen::MatrixXd FilterIO::get_H(const std::string &sheet_name,
+                                const int &start_row, const int &start_column,
+                                const int &rows, const int &columns) {
+    int column_nums = columns == 0 ? file_in.get_columns(sheet_name) : columns;
+    int row_nums    = rows == 0 ? file_in.get_rows(sheet_name) : rows;
+    Eigen::MatrixXd H = file_in.read_block(sheet_name, start_row, start_column,
+                                           row_nums, column_nums);
     return H;
 }
-Eigen::VectorXd FilterIO::get_Q() {
+Eigen::VectorXd FilterIO::get_Q(const std::string &sheet_name,
+                                const int &column, const int &start_row,
+                                const int &element_nums) {
     // 第一列存储变量的介绍，第二列存储数据, 给单个预测粒子添加方差
-    Eigen::VectorXd Q = file_in.read_column("Q", 2);
+    Eigen::VectorXd Q =
+        file_in.read_column(sheet_name, column, start_row, element_nums);
     return Q;
 }
-// 读取观测数据，生成观测平均值和协方差, 设置为虚函数，便于重写
-// 要保证z比R先读，读取R时会更新索引
-Eigen::VectorXd FilterIO::next_z(const int &start_index) {
-    Eigen::VectorXd value;
-    if (start_index + index > file_in.get_rows("Obs")) {
-        return value;
-    } else {
-        value = file_in.read_row("Obs", index + start_index, 2);
-        return value;
-    }
-}
-// 与Obs同时同步，不更新index，index由next_R更新
-Eigen::MatrixXd FilterIO::next_R(const int &start_index) {
-    Eigen::MatrixXd value;
-    if (start_index + index > file_in.get_rows("R")) {
-        return value;
-    } else {
-        Eigen::VectorXd vector_value =
-            file_in.read_row("R", index + start_index, 2);
-        value = Eigen::MatrixXd::Zero(vector_value.size(), vector_value.size());
-        for (int i = 0; i < vector_value.size(); ++i) {
-            value(i, i) = vector_value(i);
-        }
-        ++index;
-        return value;
-    }
-}
-void FilterIO::get_obs(Eigen::VectorXd &z, Eigen::MatrixXd &R,
-                              const int &start_index) {
-    std::cout << "Processing measurement value of index: " << index << std::endl;
-    z = next_z(start_index);
-    R = next_R(start_index);
-}
+
 void FilterIO::write_headers() {
     int rows = file_in.get_rows("Init_X");
     file_out.write_cell_string("Index", "X", 1, 1);
@@ -76,18 +58,41 @@ void FilterIO::write_headers() {
     file_out.remove_sheet("Sheet1");
 }
 // 记录同化的数据结果
-void FilterIO::write_x(const Eigen::VectorXd &x) {
-    file_out.write_row(x, "X", index + 1, 2);
+void FilterIO::write_x(const Eigen::VectorXd &x, const std::string &sheet_name,
+                       const int &start_row, const int &start_column) {
+    file_out.write_row(x, sheet_name, index + start_row, start_column);
 }
-void FilterIO::write_P(const Eigen::MatrixXd &P) {
+void FilterIO::write_P(const Eigen::MatrixXd &P, const std::string &sheet_name,
+                       const int &start_row, const int &start_column) {
     int nums = P.cols();
     Eigen::VectorXd values(nums);
     for (int i = 0; i < nums; ++i) {
         values(i) = P(i, i);
     }
-    file_out.write_row(values, "P", index + 1, 2);
+    file_out.write_row(values, sheet_name, index + start_row, start_column);
 }
 
-void FilterIO::update_index(){
-    ++index;
+void FilterIO::read(Eigen::VectorXd &z, Eigen::MatrixXd &R) {
+
+    if (index < total_nums) {
+        std::cout << "Processing measurement value of index: " << index + 1
+                  << std::endl;
+        read_one(file_in, z, R, index);
+        increment_index();
+    } else {
+        z = Eigen::VectorXd(0);
+        R = Eigen::MatrixXd(0, 0);
+    }
+}
+
+void FilterIO::read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
+                        const int &index) {
+    z                            = file.read_row("Obs", index + 2, 2);
+    Eigen::VectorXd vector_rread = file.read_row("R", index + 2, 2);
+    Eigen::MatrixXd r_read =
+        Eigen::MatrixXd::Zero(vector_rread.size(), vector_rread.size());
+    for (int i = 0; i < vector_rread.size(); ++i) {
+        r_read(i, i) = vector_rread(i);
+    }
+    R = r_read;
 }
