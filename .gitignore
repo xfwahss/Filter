@@ -7,6 +7,7 @@
 *.pdb
 *.swap
 *.json
+**/__pycache__
 /.cache
 /build
 
