@@ -83,22 +83,25 @@ Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row,
 }
 
 Eigen::VectorXd ExcelIO::read_column(const std::string &sheet_name,
-                                     const int &column) {
-    int nums = get_rows(sheet_name);
+                                     const int &column, const int &start_row,
+                                     const int &element_nums) {
+    int nums = element_nums == 0 ? get_rows(sheet_name) : element_nums;
     Eigen::VectorXd value(nums);
     for (int i = 0; i < nums; ++i) {
-        value(i) = get_cell_value(sheet_name, i + 1, column);
+        value(i) = get_cell_value(sheet_name, i + start_row, column);
     }
     return value;
 }
 
 Eigen::MatrixXd ExcelIO::read_block(const std::string &sheet_name,
-                                    const int &start_x, const int &start_y,
-                                    const int &rows, const int &columns) {
+                                    const int &start_row,
+                                    const int &start_column, const int &rows,
+                                    const int &columns) {
     Eigen::MatrixXd value(rows, columns);
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
-            value(i, j) = get_cell_value(sheet_name, i + start_x, j + start_y);
+            value(i, j) =
+                get_cell_value(sheet_name, i + start_row, j + start_column);
         }
     }
     return value;
@@ -111,7 +114,7 @@ std::string ExcelIO::read_cell_string(const std::string &sheet_name,
     return s;
 }
 
-void ExcelIO::remove_sheet(const std::string &sheet_name){
+void ExcelIO::remove_sheet(const std::string &sheet_name) {
     file.workbook().deleteSheet(sheet_name);
 }
 
@@ -152,8 +155,9 @@ void ExcelIO::write_column(const Eigen::VectorXd &value,
     }
 }
 
-void ExcelIO::write_cell_string(const std::string &value, const std::string &sheet_name,
-                         const int &row, const int &column) {
+void ExcelIO::write_cell_string(const std::string &value,
+                                const std::string &sheet_name, const int &row,
+                                const int &column) {
     if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
         file.workbook().addWorksheet(sheet_name);
     }
