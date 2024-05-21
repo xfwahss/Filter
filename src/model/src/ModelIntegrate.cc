@@ -4,7 +4,7 @@
 
 class Model : public EnsembleModel {
   public:
-    void predict(const double &dt) {
+    Eigen::VectorXd predict(const double &dt) {
         Reservoir reservoir;
         River baihe;
         River chaohe;
@@ -41,7 +41,7 @@ class Model : public EnsembleModel {
         predict_status(2)          = current_status(2);
         predict_status(3)          = current_status(3);
         predict_status(4)          = next_res_status.wl;
-        update(predict_status);
+        return predict_status;
     };
 };
 

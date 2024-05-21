@@ -4,10 +4,10 @@
 // 负责粒子更新步, 将状态向量分配给机理模型
 class Model: public EnsembleModel {
   public:
-    void predict(const double &dt) {
+    Eigen::VectorXd predict(const double &dt) {
       Eigen::VectorXd s = get_status();
       s = constant_predict(s, dt);
-      update(s);
+      return s;
     }
 };
 

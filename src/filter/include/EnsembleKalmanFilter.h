@@ -179,7 +179,7 @@ template <class T> void EnsembleKalmanFilter<T>::sample() {
 template <class T>
 void EnsembleKalmanFilter<T>::sample_predict(const double &dt) {
     for (int i = 0; i < ensemble.size(); ++i) {
-        ensemble[i]->predict(dt);
+        ensemble[i]->step(dt);
     }
 }
 
@@ -276,7 +276,11 @@ class EnsembleModel {
     Eigen::VectorXd get_status() { return status; }
     void update(Eigen::VectorXd &status) { this->status = status; }
     // 子类必须实现predict的方法
-    virtual void predict(const double &dt) = 0;
+    virtual Eigen::VectorXd predict(const double &dt) = 0;
+    void step(const double &dt){
+        Eigen::VectorXd predicted_status = predict(dt);
+        update(predicted_status);
+    }
 };
 
 #endif
