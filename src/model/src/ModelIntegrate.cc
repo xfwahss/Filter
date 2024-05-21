@@ -1,6 +1,7 @@
 #include "../../filter/include/EnsembleKalmanFilter.h"
 #include "../../reactor/include/Reservoir.h"
 #include "../../reactor/include/RiverSystem.h"
+#include "../../utils/commands.h"
 
 class Model : public EnsembleModel {
   public:
@@ -65,12 +66,30 @@ class ModelIO : public FilterIO {
         R       = r_value;
     }
 };
-int main() {
+
+void run(const std::string &filename_in, const std::string &filename_out) {
     EnsembleKalmanFilter<Model> enkal(2000);
-    ModelIO modelio("../test/data/Miyun_Model.xlsx",
-                    "../test/data/Miyun_Model_out.xlsx");
+    ModelIO modelio(filename_in, filename_out);
     enkal.init(modelio.get_init_X(), modelio.get_init_P(), modelio.get_H(),
                modelio.get_Q());
     enkal.batch_assimilation(&modelio, 1);
+}
+
+int main(int argc, char *argv[]) {
+    auto options             = tools::get_args(argc, argv);
+    std::string filename_in  = "Miyun_Model.xlsx";
+    std::string filename_out = "Miyun_Model_out.xlsx";
+    for (const auto &pair : options) {
+        if (pair.first == "-fi") {
+            filename_in = pair.second;
+        } else if (pair.first == "-fo") {
+            filename_out = pair.second;
+        } else if (pair.first == "-h") {
+            std::cout << "Hello" << std::endl;
+        } else {
+            std::cout << "Invalid arguments" << std::endl;
+        }
+    }
+    run(filename_in, filename_out);
     return 0;
 }
