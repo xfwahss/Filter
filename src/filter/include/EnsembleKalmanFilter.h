@@ -20,10 +20,6 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
 
     void step_assimilation(const double &dt, const Eigen::VectorXd &z,
                            const Eigen::MatrixXd &R);
-    /*
-    每个状态每次只有一个观测值,多个观测值给定R的另写
-    * 改成多个文件协同
-    */
     void batch_assimilation(FilterIO *modelio, const double &dt,
                             const Eigen::MatrixXd &R = Eigen::MatrixXd());
     Eigen::VectorXd get_status();
@@ -186,23 +182,23 @@ void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio,
                                                  const double &dt,
                                                  const Eigen::MatrixXd &R) {
     Eigen::VectorXd z;
-    Eigen::MatrixXd R_file;
+    Eigen::MatrixXd r_file;
     filterio->write_headers();
     if (R.size() == 0) {
-        filterio->get_obs(z, R_file);
+        filterio->read(z, r_file);
         while (z.size() != 0) {
-            this->step_assimilation(dt, z, R_file);
-            filterio->write_x(X);
-            filterio->write_P(P);
-            filterio->get_obs(z, R_file);
+            this->step_assimilation(dt, z, r_file);
+            filterio->write_x(X, "X", 1, 2);
+            filterio->write_P(P, "P", 1, 2);
+            filterio->read(z, r_file);
         }
     } else {
-        filterio->get_obs(z, R_file);
+        filterio->read(z, r_file);
         while (z.size() != 0) {
             this->step_assimilation(dt, z, R);
-            filterio->write_x(X);
-            filterio->write_P(P);
-            filterio->get_obs(z, R_file);
+            filterio->write_x(X, "X", 1, 2);
+            filterio->write_P(P, "P", 1, 2);
+            filterio->read(z, r_file);
         }
     }
 }
@@ -231,9 +227,9 @@ class EnsembleModel {
     }
     // 二阶导数不变更新
     /* @brief 假设二阶导数不变的参数更新
-    * @param s Vector3d的存储格式为 [状态, 一阶导数, 二阶导数]
-    * @param dt 预测时间间隔
-    */
+     * @param s Vector3d的存储格式为 [状态, 一阶导数, 二阶导数]
+     * @param dt 预测时间间隔
+     */
     Eigen::Vector3d const_2derivate_predict(const Eigen::Vector3d &s,
                                             const double &dt) {
         Eigen::Vector3d next;
@@ -248,10 +244,14 @@ class EnsembleModel {
     void update(Eigen::VectorXd &status) { this->status = status; }
     // 子类必须实现predict的方法
     virtual Eigen::VectorXd predict(const double &dt) = 0;
-    void step(const double &dt){
+    void step(const double &dt) {
         Eigen::VectorXd predicted_status = predict(dt);
         update(predicted_status);
     }
+};
+
+class EnsembleIO: public FilterIO{
+
 };
 
 #endif
