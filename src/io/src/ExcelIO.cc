@@ -47,13 +47,13 @@ int ExcelIO::get_columns(const std::string &sheet_name) {
 
 double ExcelIO::get_cell_value(const std::string &sheet_name, const int &row,
                                const int &column) {
-    int max_rows    = get_rows(sheet_name);
-    int max_columns = get_columns(sheet_name);
-    if (row > max_rows) {
-        throw std::invalid_argument("Max rows were exceeded");
-    } else if (column > max_columns) {
-        throw std::invalid_argument("Max columns were exceeded");
-    }
+    // int max_rows    = get_rows(sheet_name);
+    // int max_columns = get_columns(sheet_name);
+    // if (row > max_rows) {
+    //     throw std::invalid_argument("Max rows were exceeded");
+    // } else if (column > max_columns) {
+    //     throw std::invalid_argument("Max columns were exceeded");
+    // }
     auto wks               = file.workbook().worksheet(sheet_name);
     std::string value_type = wks.cell(row, column).value().typeAsString();
     if (value_type == "empty") {
