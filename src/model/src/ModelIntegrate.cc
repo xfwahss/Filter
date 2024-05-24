@@ -1,12 +1,16 @@
 #include "../../filter/include/EnsembleKalmanFilter.h"
+#include "../../reactor/include/Denitrification.h"
+#include "../../reactor/include/Nitrification.h"
 #include "../../reactor/include/Reservoir.h"
 #include "../../reactor/include/RiverSystem.h"
 #include "../../utils/commands.h"
 
 class Model : public EnsembleModel {
   public:
-    Eigen::VectorXd predict(const double &dt) {
+    Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) {
         Reservoir reservoir;
+        Denitrification deni_proc;
+        Nitrification ni_proc;
         River baihe;
         River chaohe;
         River bai_dam;
@@ -17,30 +21,87 @@ class Model : public EnsembleModel {
         rivers_in.add_river("Chaohe", baihe);
         rivers_out.add_river("Baihe_Dam", bai_dam);
         rivers_out.add_river("Chaohe_Dam", chao_dam);
-        // 更新粒子状态
-        Eigen::VectorXd current_status = get_status();
-        Eigen::VectorXd predict_status(current_status.size());
-        // 更新子模型状态
-        res_status res_s(current_status(4), 0, 0, 0, 0, 0);
-        Eigen::VectorXd rivers_in_s(8);
-        rivers_in_s << current_status(0), 0, 0, 0, current_status(1), 0, 0, 0;
-        Eigen::VectorXd rivers_out_s(8);
-        rivers_out_s << current_status(2), 0, 0, 0, current_status(3), 0, 0, 0;
+        // 粒子状态向量分发
+        double in_flow1     = status(0);
+        double in_flow1_cno = 0;
+        double in_flow1_cna = 0;
+        double in_flow1_cnn = 0;
+
+        double in_flow2     = status(1);
+        double in_flow2_cno = 0;
+        double in_flow2_cna = 0;
+        double in_flow2_cnn = 0;
+
+        double out_flow1     = status(2);
+        double out_flow1_cno = 0;
+        double out_flow1_cna = 0;
+        double out_flow1_cnn = 0;
+
+        double out_flow2     = status(3);
+        double out_flow2_cno = 0;
+        double out_flow2_cna = 0;
+        double out_flow2_cnn = 0;
+
+        double wl      = status(4);
+        double res_cno = 0;
+        double res_cna = 0;
+        double res_cnn = 0;
+        double res_T   = 0;
+        double res_cdo = 0;
+
+        double deni_rn0   = 0; // 0阶反应速率
+        double deni_knb1  = 0; // 20度时的反硝化速率常数
+        double deni_Tnc   = 0; // 临界温度
+        double deni_theta = 0; // 温度系数
+        double deni_cnoxc = 0; // 临界溶解氧浓度
+        double deni_cnoxo = 0; // 最佳溶解氧浓度
+        double beta       = 1; // 曲率系数
+
+        double ni_ra0     = 0;
+        double ni_kab1    = 0;
+        double ni_foxmin  = 0;
+        double ni_c_oxc   = 0;
+        double ni_c_oxo   = 0;
+        double ni_theta_a = 0;
+        double ni_T_c     = 0;
+        double alpha      = 0;
+
+        // 子模型状态更新
+        res_status res_s(wl, res_cno, res_cna, res_cnn, res_T, res_cdo);
         reservoir.update(res_s);
+
+        Eigen::VectorXd rivers_in_s(8);
+        rivers_in_s << in_flow1, in_flow1_cno, in_flow1_cna, in_flow1_cnn,
+            in_flow2, in_flow2_cno, in_flow2_cna, in_flow2_cnn;
         rivers_in.update(rivers_in_s);
+
+        Eigen::VectorXd rivers_out_s(8);
+        rivers_out_s << out_flow1, out_flow1_cno, out_flow1_cna, out_flow1_cnn,
+            out_flow2, out_flow2_cno, out_flow2_cna, out_flow2_cnn;
         rivers_out.update(rivers_out_s);
 
-        // 子模型预测dt
+        deni_status deni_sta(deni_rn0, deni_knb1, deni_Tnc, deni_theta,
+                             deni_cnoxc, deni_cnoxo);
+        deni_proc.update(deni_sta);
+
+        nitri_status ni_sta(ni_ra0, ni_kab1, ni_foxmin, ni_c_oxc, ni_c_oxo,
+                            ni_theta_a, ni_T_c);
+        ni_proc.update(ni_sta);
+
+        // 定义更新后的粒子状态,开始状态预测更新dt时间步
+        Eigen::VectorXd predict_status(status.size());
         Eigen::VectorXd in  = rivers_in.get_status();
         Eigen::VectorXd out = rivers_out.get_status();
-        double ro = 0, ra = 0, rn = 0;
+        double ro           = 0;
+        double ra           = ni_proc.rate(res_cdo, res_T, res_cna);
+        double rn           = deni_proc.rate(res_cdo, res_T, res_cnn);
         reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2),
                           in(3), out(3), ro, ra, rn);
         res_status next_res_status = reservoir.get_status();
-        predict_status(0)          = current_status(0);
-        predict_status(1)          = current_status(1);
-        predict_status(2)          = current_status(2);
-        predict_status(3)          = current_status(3);
+        predict_status(0)          = in_flow1;
+        predict_status(1)          = in_flow2;
+        predict_status(2)          = out_flow1;
+        predict_status(3)          = out_flow2;
         predict_status(4)          = next_res_status.wl;
         return predict_status;
     };
@@ -68,10 +129,15 @@ class ModelIO : public FilterIO {
 };
 
 void run(const std::string &filename_in, const std::string &filename_out) {
-    EnsembleKalmanFilter<Model> enkal(2000);
     ModelIO modelio(filename_in, filename_out);
-    enkal.init(modelio.get_init_X(), modelio.get_init_P(), modelio.get_H(),
-               modelio.get_Q());
+    std::unordered_map<std::string, double> params = modelio.get_params();
+    EnsembleKalmanFilter<Model> enkal(params["size"]);
+    int dims = params["status_dims"];
+    Eigen::VectorXd X = modelio.get_init_X("Init_X", 2, 1, dims);
+    Eigen::MatrixXd P = modelio.get_init_P("Init_P", 2, 2, dims);
+    Eigen::MatrixXd H = modelio.get_H("H", 2, 2, dims, dims);
+    Eigen::VectorXd Q = modelio.get_Q("Q", 2, 1, dims);
+    enkal.init(X, P, H, Q);
     enkal.batch_assimilation(&modelio, 1);
 }
 
