@@ -243,15 +243,13 @@ class EnsembleModel {
     Eigen::VectorXd get_status() { return status; }
     void update(Eigen::VectorXd &status) { this->status = status; }
     // 子类必须实现predict的方法
-    virtual Eigen::VectorXd predict(const double &dt) = 0;
+    virtual Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) = 0;
     void step(const double &dt) {
-        Eigen::VectorXd predicted_status = predict(dt);
+        Eigen::VectorXd predicted_status = predict(dt, status);
         update(predicted_status);
     }
 };
 
-class EnsembleIO: public FilterIO{
-
-};
+class EnsembleIO : public FilterIO {};
 
 #endif
