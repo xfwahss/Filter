@@ -1,6 +1,7 @@
 #ifndef FILTER_IO_H
 #define FILTER_IO_H
 #include "ExcelIO.h"
+#include <unordered_map>
 class FilterIO {
   private:
     ExcelIO file_in;
@@ -30,6 +31,11 @@ class FilterIO {
     Eigen::VectorXd get_Q(const std::string &sheet_name = "Q",
                           const int &column = 2, const int &start_row = 1,
                           const int &element_nums = 0);
+
+    std::unordered_map<std::string, double>
+    get_params(const std::string &sheet_name = "Params",
+               const int &index_column = 1, const int &value_column = 2,
+               const int &start_row = 1);
 
     void write_x(const Eigen::VectorXd &x, const std::string &sheet_name = "X",
                  const int &start_row = 2, const int &start_column = 2);

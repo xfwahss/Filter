@@ -5,7 +5,7 @@
 FilterIO::FilterIO(const std::string &filename_in,
                    const std::string &filename_out)
     : file_in(filename_in, "r"), file_out(filename_out, "w"), index(0) {
-    total_nums = file_in.read_column("Params", 2)(0);
+    total_nums = get_params("Params", 1, 2, 1)["measurement_nums"];
 };
 FilterIO::~FilterIO(){};
 void FilterIO::increment_index() { ++index; }
@@ -44,6 +44,28 @@ Eigen::VectorXd FilterIO::get_Q(const std::string &sheet_name,
     Eigen::VectorXd Q =
         file_in.read_column(sheet_name, column, start_row, element_nums);
     return Q;
+}
+
+std::unordered_map<std::string, double>
+FilterIO::get_params(const std::string &sheet_name, const int &index_column,
+                     const int &value_column, const int &start_row) {
+    std::unordered_map<std::string, double> params;
+    if (file_in.read_cell_string(sheet_name, start_row, index_column) !=
+        "param_nums") {
+        throw std::invalid_argument(
+            "Please set the number of parameters to be "
+            "read as the first parameter, format as 'param_nums 1'");
+    } else {
+        int element_nums =
+            file_in.read_column(sheet_name, value_column, start_row, 1)(0);
+        for (int i = 1; i < element_nums + 1; ++i) {
+            std::string index = file_in.read_cell_string(
+                sheet_name, i + start_row, index_column);
+            params[index] = file_in.read_column(sheet_name, value_column,
+                                                start_row + i, 1)(0);
+        }
+    }
+    return params;
 }
 
 void FilterIO::write_headers() {
