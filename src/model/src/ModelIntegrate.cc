@@ -114,17 +114,107 @@ class ModelIO : public FilterIO {
     ~ModelIO() {}
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
                   const int &index) {
-        Eigen::VectorXd in_value  = file.read_row("Rivers_in", 2 + index, 2);
-        Eigen::VectorXd out_value = file.read_row("Rivers_out", 2 + index, 2);
-        Eigen::VectorXd res_value = file.read_row("Reservoir", 2 + index, 2);
-        Eigen::VectorXd value(5);
-        value << in_value(0), in_value(1), out_value(0), out_value(1),
-            res_value(0);
+        using tools::handle_miss;
 
-        Eigen::MatrixXd r_value;
-        r_value = file.read_block("R", 1, 1, 5, 5);
-        z       = value;
-        R       = r_value;
+        //*****************************初始化*******************************
+        int obs_dims = get_params("Params", 1, 2, 1)["obs_dims"];
+        Eigen::VectorXd z_value(obs_dims);
+        Eigen::MatrixXd r_value(obs_dims, obs_dims);
+
+        //*****************************数据读取*****************************
+        /* in_value的数据格式:
+         * 0: baihe flow; 1: chaohe flow
+         * 2: baihe NHN; 3: baihe NON 4: baihe TN
+         * 5: chaohe NHN 6: chaohe NON 7: chaohe TN
+         */
+        Eigen::VectorXd in_value = file.read_row("Rivers_in", 2 + index, 2);
+
+        /* out_value的数据格式：
+         * 0: baihe_dam flow; 1: chaohe_dam flow
+         * 2: baihe_dam NHN; 3: baihe_dam NON; 4: baihe_dam TN
+         * 5: chaohe_dam NHN; 6: chaohe_dam NON; 7: chaohe_dam TN
+         */
+        Eigen::VectorXd out_value = file.read_row("Rivers_out", 2 + index, 2);
+
+        /*  res_value的数据格式:
+         * 0: water level
+         * 1: kuxi_T 2:Kuxi_DO 3:kuxi_NHN 4:kuxi_NON 5:kuxi_TN
+         * 6: Taoli_T 7:Taoli_DO 8:Taoli_NHN 9:Taoli_NON 10:Taoli_TN
+         * 11: Neihu_T 12:Neihu_DO 13:Neihu_NHN 14:Neihu_NON 15:Neihu_TN
+         * 16: Henghe_T 17:Henghe_DO 18:Henghe_NHN 19:Henghe_NON 20:Henghe_TN
+         * 21: Kudong_T 22:Kudong_DO 23:Kudong_NHN 24:Kudong_NON 25:Kudong_TN
+         * 26: Jingou_T 27:Jingou_DO 28:Jingou_NHN 29:Jingou_NON 30:Jingou_TN
+         */
+        Eigen::VectorXd res_value = file.read_row("Reservoir", 2 + index, 2);
+
+        //***************************数据处理**************************
+        // 水文数据
+        z_value(0) = in_value(0);
+        z_value(1) = in_value(1);
+        z_value(2) = out_value(0);
+        z_value(3) = out_value(1);
+        z_value(4) = res_value(0);
+
+        // 水质数据
+        double baihe_cno = handle_miss((in_value(4))) -
+                           handle_miss(in_value(3)) - handle_miss(in_value(2));
+        double chaohe_cno = handle_miss(in_value(7)) -
+                            handle_miss(in_value(6)) - handle_miss(in_value(5));
+        z_value(5)  = baihe_cno;
+        z_value(6)  = handle_miss(in_value(2));
+        z_value(7)  = handle_miss(in_value(3));
+        z_value(8)  = chaohe_cno;
+        z_value(9)  = handle_miss(in_value(5));
+        z_value(10) = handle_miss(in_value(6));
+
+        double baihedam_cno = handle_miss(out_value(4)) -
+                              handle_miss(out_value(3)) -
+                              handle_miss(out_value(2));
+        double chaohedam_cno = handle_miss(out_value(7)) -
+                               handle_miss(out_value(6)) -
+                               handle_miss(out_value(5));
+        z_value(11) = baihedam_cno;
+        z_value(12) = handle_miss(out_value(2));
+        z_value(13) = handle_miss(out_value(3));
+        z_value(14) = chaohedam_cno;
+        z_value(15) = handle_miss(out_value(5));
+        z_value(16) = handle_miss(out_value(6));
+
+        double res_T =
+            (handle_miss(res_value(1)) + handle_miss(res_value(6)) +
+             handle_miss(res_value(11)) + handle_miss(res_value(16)) +
+             handle_miss(res_value(21)) + handle_miss(res_value(26))) /
+            6.0;
+        double res_do =
+            (handle_miss(res_value(2)) + handle_miss(res_value(7)) +
+             handle_miss(res_value(12)) + handle_miss(res_value(17)) +
+             handle_miss(res_value(22)) + handle_miss(res_value(27))) /
+            6.0;
+        double res_cna =
+            (handle_miss(res_value(3)) + handle_miss(res_value(8)) +
+             handle_miss(res_value(13)) + handle_miss(res_value(18)) +
+             handle_miss(res_value(23)) + handle_miss(res_value(28))) /
+            6.0;
+        double res_cnn =
+            (handle_miss(res_value(4)) + handle_miss(res_value(9)) +
+             handle_miss(res_value(14)) + handle_miss(res_value(19)) +
+             handle_miss(res_value(24)) + handle_miss(res_value(29))) /
+            6.0;
+        double res_cno =
+            (handle_miss(res_value(5)) + handle_miss(res_value(10)) +
+             handle_miss(res_value(15)) + handle_miss(res_value(20)) +
+             handle_miss(res_value(25)) + handle_miss(res_value(30))) /
+                6.0 -
+            res_cna - res_cnn;
+        z_value(17) = res_cno;
+        z_value(18) = res_cna;
+        z_value(19) = res_cnn;
+        r_value     = file.read_block("R", 2, 2, obs_dims, obs_dims);
+
+        std::cout<<r_value;
+        // 值传递
+        z = z_value;
+        R = r_value;
     }
 };
 
@@ -132,11 +222,12 @@ void run(const std::string &filename_in, const std::string &filename_out) {
     ModelIO modelio(filename_in, filename_out);
     std::unordered_map<std::string, double> params = modelio.get_params();
     EnsembleKalmanFilter<Model> enkal(params["size"]);
-    int dims = params["status_dims"];
-    Eigen::VectorXd X = modelio.get_init_X("Init_X", 2, 1, dims);
-    Eigen::MatrixXd P = modelio.get_init_P("Init_P", 2, 2, dims);
-    Eigen::MatrixXd H = modelio.get_H("H", 2, 2, dims, dims);
-    Eigen::VectorXd Q = modelio.get_Q("Q", 2, 1, dims);
+    int status_dims   = params["status_dims"];
+    int obs_dims      = params["obs_dims"];
+    Eigen::VectorXd X = modelio.get_init_X("Init_X", 2, 1, status_dims);
+    Eigen::MatrixXd P = modelio.get_init_P("Init_P", 2, 2, status_dims);
+    Eigen::MatrixXd H = modelio.get_H("H", 2, 2, obs_dims, status_dims);
+    Eigen::VectorXd Q = modelio.get_Q("Q", 2, 1, status_dims);
     enkal.init(X, P, H, Q);
     enkal.batch_assimilation(&modelio, 1);
 }
