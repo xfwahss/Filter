@@ -18,5 +18,13 @@ std::unordered_map<std::string, std::string> get_args(int argc, char *argv[]) {
     }
     return options;
 }
+
+double handle_miss(const double &value){
+    if(value == -999.0){
+        return 0;
+    } else {
+        return value;
+    }
+}
 } // namespace tools
 #endif
