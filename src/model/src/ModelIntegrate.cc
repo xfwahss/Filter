@@ -23,29 +23,29 @@ class Model : public EnsembleModel {
         rivers_out.add_river("Chaohe_Dam", chao_dam);
         // 粒子状态向量分发
         double in_flow1     = status(0);
-        double in_flow1_cno = 0;
-        double in_flow1_cna = 0;
-        double in_flow1_cnn = 0;
+        double in_flow1_cno = status(5);
+        double in_flow1_cna = status(6);
+        double in_flow1_cnn = status(7);
 
         double in_flow2     = status(1);
-        double in_flow2_cno = 0;
-        double in_flow2_cna = 0;
-        double in_flow2_cnn = 0;
+        double in_flow2_cno = status(8);
+        double in_flow2_cna = status(9);
+        double in_flow2_cnn = status(10);
 
         double out_flow1     = status(2);
-        double out_flow1_cno = 0;
-        double out_flow1_cna = 0;
-        double out_flow1_cnn = 0;
+        double out_flow1_cno = status(11);
+        double out_flow1_cna = status(12);
+        double out_flow1_cnn = status(13);
 
         double out_flow2     = status(3);
-        double out_flow2_cno = 0;
-        double out_flow2_cna = 0;
-        double out_flow2_cnn = 0;
+        double out_flow2_cno = status(14);
+        double out_flow2_cna = status(15);
+        double out_flow2_cnn = status(16);
 
         double wl      = status(4);
-        double res_cno = 0;
-        double res_cna = 0;
-        double res_cnn = 0;
+        double res_cno = status(17);
+        double res_cna = status(18);
+        double res_cnn = status(19);
         double res_T   = 0;
         double res_cdo = 0;
 
@@ -95,6 +95,8 @@ class Model : public EnsembleModel {
         double ro           = 0;
         double ra           = ni_proc.rate(res_cdo, res_T, res_cna);
         double rn           = deni_proc.rate(res_cdo, res_T, res_cnn);
+        // ra = 0;
+        // rn = 0;
         reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2),
                           in(3), out(3), ro, ra, rn);
         res_status next_res_status = reservoir.get_status();
@@ -103,6 +105,21 @@ class Model : public EnsembleModel {
         predict_status(2)          = out_flow1;
         predict_status(3)          = out_flow2;
         predict_status(4)          = next_res_status.wl;
+        predict_status(5) = in_flow1_cno;
+        predict_status(6) = in_flow1_cna;
+        predict_status(7) = in_flow1_cnn;
+        predict_status(8) = in_flow2_cno;
+        predict_status(9) = in_flow2_cna;
+        predict_status(10) = in_flow2_cnn;
+        predict_status(11) = out_flow1_cno;
+        predict_status(12) = out_flow1_cna;
+        predict_status(13) = out_flow1_cnn;
+        predict_status(14) = out_flow2_cno;
+        predict_status(15) = out_flow2_cna;
+        predict_status(16) = out_flow2_cnn;
+        predict_status(17) = next_res_status.c_no;
+        predict_status(18) = next_res_status.c_na;
+        predict_status(19) = next_res_status.c_nn;
         return predict_status;
     };
 };
@@ -114,6 +131,7 @@ class ModelIO : public FilterIO {
     ~ModelIO() {}
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
                   const int &index) {
+        using tools::exclude_mean;
         using tools::handle_miss;
 
         //*****************************初始化*******************************
@@ -180,38 +198,24 @@ class ModelIO : public FilterIO {
         z_value(15) = handle_miss(out_value(5));
         z_value(16) = handle_miss(out_value(6));
 
-        double res_T =
-            (handle_miss(res_value(1)) + handle_miss(res_value(6)) +
-             handle_miss(res_value(11)) + handle_miss(res_value(16)) +
-             handle_miss(res_value(21)) + handle_miss(res_value(26))) /
-            6.0;
-        double res_do =
-            (handle_miss(res_value(2)) + handle_miss(res_value(7)) +
-             handle_miss(res_value(12)) + handle_miss(res_value(17)) +
-             handle_miss(res_value(22)) + handle_miss(res_value(27))) /
-            6.0;
-        double res_cna =
-            (handle_miss(res_value(3)) + handle_miss(res_value(8)) +
-             handle_miss(res_value(13)) + handle_miss(res_value(18)) +
-             handle_miss(res_value(23)) + handle_miss(res_value(28))) /
-            6.0;
-        double res_cnn =
-            (handle_miss(res_value(4)) + handle_miss(res_value(9)) +
-             handle_miss(res_value(14)) + handle_miss(res_value(19)) +
-             handle_miss(res_value(24)) + handle_miss(res_value(29))) /
-            6.0;
-        double res_cno =
-            (handle_miss(res_value(5)) + handle_miss(res_value(10)) +
-             handle_miss(res_value(15)) + handle_miss(res_value(20)) +
-             handle_miss(res_value(25)) + handle_miss(res_value(30))) /
-                6.0 -
-            res_cna - res_cnn;
+        double res_T, res_do, res_cna, res_cnn, res_cno;
+        res_T   = exclude_mean({res_value(1), res_value(6), res_value(11),
+                                res_value(16), res_value(21), res_value(26)});
+        res_do  = exclude_mean({res_value(2), res_value(7), res_value(12),
+                                res_value(17), res_value(22), res_value(27)});
+        res_cna = exclude_mean({res_value(3), res_value(8), res_value(13),
+                                res_value(18), res_value(23), res_value(28)});
+        res_cnn = exclude_mean({res_value(4), res_value(9), res_value(14),
+                                res_value(19), res_value(24), res_value(29)});
+        res_cno = exclude_mean({res_value(5), res_value(10), res_value(15),
+                                res_value(20), res_value(25), res_value(30)}) -
+                  res_cna - res_cnn;
         z_value(17) = res_cno;
         z_value(18) = res_cna;
         z_value(19) = res_cnn;
+
         r_value     = file.read_block("R", 2, 2, obs_dims, obs_dims);
 
-        std::cout<<r_value;
         // 值传递
         z = z_value;
         R = r_value;
