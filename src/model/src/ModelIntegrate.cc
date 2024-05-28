@@ -178,8 +178,73 @@ class ModelIO : public FilterIO {
         }
     };
     void calc_r() {
-        // 先初步处理，默认为读取的r_read
-        r_value = r_read_value;
+        /*
+         *计算具有观测值的协方差矩阵,没有观测值填充-999，
+         *实际上两个变量的协方差为0，只需要将没有观测值的方差设置为无穷大就行
+         */
+        double mea_nums = 6;
+        Eigen::MatrixXd obs_mat =
+            Eigen::MatrixXd::Ones(mea_nums, obs_dims) * (-999);
+        for (int i = 0; i < obs_dims - 3; ++i) {
+            if (z_value(i) != 0) {
+                for (int j = 0; j < mea_nums; ++j) {
+                    obs_mat(j, i) =
+                        tools::random_double(z_value(i), r_read_value(i, i));
+                }
+            }
+        }
+        // 氨氮数据读取赋值,有值赋值，没值赋值平均数
+        if (z_value(obs_dims - 2) != 0) {
+            int index[6] = {3, 8, 13, 18, 23, 28};
+            for (int i = 0; i < 6; ++i) {
+                double value = res_value(index[i]);
+                if (value != -999) {
+                    obs_mat(i, obs_dims - 2) = value;
+                } else {
+                    obs_mat(i, obs_dims - 2) = z_value(obs_dims - 2);
+                }
+            }
+        }
+
+        // 硝氮数据读取赋值,有值赋值，没值赋值平均数
+        if (z_value(obs_dims - 1) != 0) {
+            int index[6] = {4, 9, 14, 19, 24, 29};
+            for (int i = 0; i < 6; ++i) {
+                double value = res_value(index[i]);
+                if (value != -999) {
+                    obs_mat(i, obs_dims - 1) = value;
+                } else {
+                    obs_mat(i, obs_dims - 1) = z_value(obs_dims - 2);
+                }
+            }
+        }
+
+        // 有机氮赋值, 有值赋值，没值给平均数
+        if (z_value(obs_dims - 3) != 0) {
+
+            int cno_index[6] = {4, 9, 14, 19, 24, 29};
+            int cna_index[6] = {3, 8, 13, 18, 23, 28};
+            int ctn_index[6] = {5, 10, 15, 20, 25, 30};
+            for (int i = 0; i < 6; ++i) {
+                double cna = res_value(cna_index[i]);
+                double cno = res_value(cno_index[i]);
+                double ctn = res_value(ctn_index[i]);
+                if (cna != -999 && cno != -999 && ctn != -999) {
+                    obs_mat(i, obs_dims - 3) = ctn - cno - cna;
+                } else {
+                    obs_mat(i, obs_dims - 3) = z_value(obs_dims - 3);
+                }
+            }
+        }
+
+        // 考虑了变量之间的相关关系的求值模式
+        r_value = tools::covariance(obs_mat);
+        // r_value = r_read_value; // 这是不考虑变量之间关系的R求值模式
+
+        // 采样计算协方差的变量方差使用读取的方差
+        for (int i = 0; i < obs_dims - 3; ++i) {
+            r_value(i, i) = r_read_value(i, i);
+        }
         // 没有观测值的变量协方差赋值为无穷大，其余不变，默认为0
         assign_inf(in_value, 0, 0);
         assign_inf(in_value, 1, 1);
@@ -199,12 +264,6 @@ class ModelIO : public FilterIO {
         assign_inf(out_value, 5, 15);
         assign_inf(out_value, 6, 16);
         assign_inf_res(res_value);
-
-        // 重新计算具有观测值的协方差矩阵
-        Eigen::MatrixXd a(2, 2);
-        a << 1, 2, 3, 4;
-        std::cout << a << std::endl;
-        std::cout << tools::covariance(a) << std::endl;
     };
     // 重写虚函数方法
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
