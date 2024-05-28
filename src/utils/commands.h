@@ -79,10 +79,10 @@ Eigen::MatrixXd covariance(const Eigen::MatrixXd &mat) {
      * 矩阵的列数为变量的个数
      *矩阵的行数为每个变量的观测值个数
      */
-    Eigen::MatrixXd covariance(mat.cols(), mat.cols());
+    Eigen::MatrixXd covariance = Eigen::MatrixXd::Zero(mat.cols(), mat.cols());
     Eigen::VectorXd sum = Eigen::VectorXd::Zero(mat.cols());
     for (int i = 0; i < mat.cols(); ++i) {
-        for (int j = 0; j < mat.cols(); ++j) {
+        for (int j = 0; j < mat.rows(); ++j) {
             sum(i) += mat(j, i);
         }
     }
