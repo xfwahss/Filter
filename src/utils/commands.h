@@ -6,7 +6,6 @@
 #include <string>
 #include <unordered_map>
 
-
 namespace tools {
 std::unordered_map<std::string, std::string> get_args(int argc, char *argv[]) {
     std::unordered_map<std::string, std::string> options;
@@ -64,6 +63,35 @@ double exclude_mean(std::initializer_list<double> args) {
     } else {
         return sum / count;
     }
+}
+
+double random_double(const double &mean, const double &variance) {
+    std::random_device seed;
+    std::mt19937_64 engine(seed());
+    double stddev = std::sqrt(variance);
+    std::normal_distribution<double> dist(mean, stddev);
+    double value = dist(engine);
+    return value;
+}
+
+Eigen::MatrixXd covariance(const Eigen::MatrixXd &mat) {
+    /* mat的数据存储格式
+     * 矩阵的列数为变量的个数
+     *矩阵的行数为每个变量的观测值个数
+     */
+    Eigen::MatrixXd covariance(mat.cols(), mat.cols());
+    Eigen::VectorXd sum = Eigen::VectorXd::Zero(mat.cols());
+    for (int i = 0; i < mat.cols(); ++i) {
+        for (int j = 0; j < mat.cols(); ++j) {
+            sum(i) += mat(j, i);
+        }
+    }
+    Eigen::VectorXd mean = sum / mat.rows();
+    for (int i = 0; i < mat.rows(); ++i) {
+        covariance += (mat.row(i).transpose() - mean) *
+                      (mat.row(i).transpose() - mean).transpose();
+    }
+    return covariance/(mat.rows() - 1);
 }
 } // namespace tools
 #endif
