@@ -105,67 +105,117 @@ class Model : public EnsembleModel {
         predict_status(2)          = out_flow1;
         predict_status(3)          = out_flow2;
         predict_status(4)          = next_res_status.wl;
-        predict_status(5) = in_flow1_cno;
-        predict_status(6) = in_flow1_cna;
-        predict_status(7) = in_flow1_cnn;
-        predict_status(8) = in_flow2_cno;
-        predict_status(9) = in_flow2_cna;
-        predict_status(10) = in_flow2_cnn;
-        predict_status(11) = out_flow1_cno;
-        predict_status(12) = out_flow1_cna;
-        predict_status(13) = out_flow1_cnn;
-        predict_status(14) = out_flow2_cno;
-        predict_status(15) = out_flow2_cna;
-        predict_status(16) = out_flow2_cnn;
-        predict_status(17) = next_res_status.c_no;
-        predict_status(18) = next_res_status.c_na;
-        predict_status(19) = next_res_status.c_nn;
+        predict_status(5)          = in_flow1_cno;
+        predict_status(6)          = in_flow1_cna;
+        predict_status(7)          = in_flow1_cnn;
+        predict_status(8)          = in_flow2_cno;
+        predict_status(9)          = in_flow2_cna;
+        predict_status(10)         = in_flow2_cnn;
+        predict_status(11)         = out_flow1_cno;
+        predict_status(12)         = out_flow1_cna;
+        predict_status(13)         = out_flow1_cnn;
+        predict_status(14)         = out_flow2_cno;
+        predict_status(15)         = out_flow2_cna;
+        predict_status(16)         = out_flow2_cnn;
+        predict_status(17)         = next_res_status.c_no;
+        predict_status(18)         = next_res_status.c_na;
+        predict_status(19)         = next_res_status.c_nn;
         return predict_status;
     };
 };
 
 class ModelIO : public FilterIO {
+
+    /* in_value的数据格式:
+     * 0: baihe flow; 1: chaohe flow
+     * 2: baihe NHN; 3: baihe NON 4: baihe TN
+     * 5: chaohe NHN 6: chaohe NON 7: chaohe TN
+     */
+    Eigen::VectorXd in_value;
+
+    /* out_value的数据格式：
+     * 0: baihe_dam flow; 1: chaohe_dam flow
+     * 2: baihe_dam NHN; 3: baihe_dam NON; 4: baihe_dam TN
+     * 5: chaohe_dam NHN; 6: chaohe_dam NON; 7: chaohe_dam TN
+     */
+    Eigen::VectorXd out_value;
+
+    /*  res_value的数据格式:
+     * 0: water level
+     * 1: kuxi_T 2:Kuxi_DO 3:kuxi_NHN 4:kuxi_NON 5:kuxi_TN
+     * 6: Taoli_T 7:Taoli_DO 8:Taoli_NHN 9:Taoli_NON 10:Taoli_TN
+     * 11: Neihu_T 12:Neihu_DO 13:Neihu_NHN 14:Neihu_NON 15:Neihu_TN
+     * 16: Henghe_T 17:Henghe_DO 18:Henghe_NHN 19:Henghe_NON 20:Henghe_TN
+     * 21: Kudong_T 22:Kudong_DO 23:Kudong_NHN 24:Kudong_NON 25:Kudong_TN
+     * 26: Jingou_T 27:Jingou_DO 28:Jingou_NHN 29:Jingou_NON 30:Jingou_TN
+     */
+    Eigen::VectorXd res_value;
+    int obs_dims;
+    Eigen::MatrixXd r_read_value; // 用于单个测量误差的给定,矩阵恒定
+    Eigen::VectorXd z_value;      // 读取数据处理z
+    Eigen::MatrixXd r_value;      // 读取数据处理R
+
   public:
     ModelIO(const std::string &filename_in, const std::string &filename_out)
-        : FilterIO(filename_in, filename_out) {}
+        : FilterIO(filename_in, filename_out) {
+        obs_dims = get_params("Params", 1, 2, 1)["obs_dims"];
+        z_value  = Eigen::VectorXd::Zero(obs_dims);
+        r_value  = Eigen::MatrixXd::Zero(obs_dims, obs_dims);
+    }
     ~ModelIO() {}
+    void assign_inf(const Eigen::VectorXd &obs, const int &index,
+                    const int &r_value_index) {
+        if (obs(index) == -999.0) {
+            r_value(r_value_index, r_value_index) = 1000000;
+        }
+    };
+    void assign_inf_res(const Eigen::VectorXd &obs) {
+        if (obs(3) == -999 && obs(8) == -999 && obs(13) == -999 &&
+            obs(18) == -999 && obs(23) == -999 && obs(28) == -999) {
+            r_value(17, 17) = 1000000;
+            r_value(18, 18) = 1000000;
+            r_value(19, 19) = 1000000;
+        }
+    };
+    void calc_r() {
+        // 先初步处理，默认为读取的r_read
+        r_value = r_read_value;
+        // 没有观测值的变量协方差赋值为无穷大，其余不变，默认为0
+        assign_inf(in_value, 0, 0);
+        assign_inf(in_value, 1, 1);
+        assign_inf(out_value, 0, 2);
+        assign_inf(out_value, 1, 3);
+        assign_inf(res_value, 0, 4);
+        assign_inf(in_value, 4, 5);
+        assign_inf(in_value, 2, 6);
+        assign_inf(in_value, 3, 7);
+        assign_inf(in_value, 7, 8);
+        assign_inf(in_value, 5, 9);
+        assign_inf(in_value, 6, 10);
+        assign_inf(out_value, 4, 11);
+        assign_inf(out_value, 2, 12);
+        assign_inf(out_value, 3, 13);
+        assign_inf(out_value, 7, 14);
+        assign_inf(out_value, 5, 15);
+        assign_inf(out_value, 6, 16);
+        assign_inf_res(res_value);
+
+        // 重新计算具有观测值的协方差矩阵
+        Eigen::MatrixXd a(2, 2);
+        a << 1, 2, 3, 4;
+        std::cout << a << std::endl;
+        std::cout << tools::covariance(a) << std::endl;
+    };
+    // 重写虚函数方法
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
                   const int &index) {
         using tools::exclude_mean;
         using tools::handle_miss;
 
-        //*****************************初始化*******************************
-        int obs_dims = get_params("Params", 1, 2, 1)["obs_dims"];
-        Eigen::VectorXd z_value(obs_dims);
-        Eigen::MatrixXd r_value(obs_dims, obs_dims);
+        in_value  = file.read_row("Rivers_in", 2 + index, 2);
+        out_value = file.read_row("Rivers_out", 2 + index, 2);
+        res_value = file.read_row("Reservoir", 2 + index, 2);
 
-        //*****************************数据读取*****************************
-        /* in_value的数据格式:
-         * 0: baihe flow; 1: chaohe flow
-         * 2: baihe NHN; 3: baihe NON 4: baihe TN
-         * 5: chaohe NHN 6: chaohe NON 7: chaohe TN
-         */
-        Eigen::VectorXd in_value = file.read_row("Rivers_in", 2 + index, 2);
-
-        /* out_value的数据格式：
-         * 0: baihe_dam flow; 1: chaohe_dam flow
-         * 2: baihe_dam NHN; 3: baihe_dam NON; 4: baihe_dam TN
-         * 5: chaohe_dam NHN; 6: chaohe_dam NON; 7: chaohe_dam TN
-         */
-        Eigen::VectorXd out_value = file.read_row("Rivers_out", 2 + index, 2);
-
-        /*  res_value的数据格式:
-         * 0: water level
-         * 1: kuxi_T 2:Kuxi_DO 3:kuxi_NHN 4:kuxi_NON 5:kuxi_TN
-         * 6: Taoli_T 7:Taoli_DO 8:Taoli_NHN 9:Taoli_NON 10:Taoli_TN
-         * 11: Neihu_T 12:Neihu_DO 13:Neihu_NHN 14:Neihu_NON 15:Neihu_TN
-         * 16: Henghe_T 17:Henghe_DO 18:Henghe_NHN 19:Henghe_NON 20:Henghe_TN
-         * 21: Kudong_T 22:Kudong_DO 23:Kudong_NHN 24:Kudong_NON 25:Kudong_TN
-         * 26: Jingou_T 27:Jingou_DO 28:Jingou_NHN 29:Jingou_NON 30:Jingou_TN
-         */
-        Eigen::VectorXd res_value = file.read_row("Reservoir", 2 + index, 2);
-
-        //***************************数据处理**************************
         // 水文数据
         z_value(0) = in_value(0);
         z_value(1) = in_value(1);
@@ -214,7 +264,8 @@ class ModelIO : public FilterIO {
         z_value(18) = res_cna;
         z_value(19) = res_cnn;
 
-        r_value     = file.read_block("R", 2, 2, obs_dims, obs_dims);
+        r_read_value = file.read_block("R", 2, 2, obs_dims, obs_dims);
+        calc_r();
 
         // 值传递
         z = z_value;
