@@ -3,57 +3,48 @@ import os
 import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
+from plotstyles.fonts import global_fonts
+import pandas as pd
 
 if __name__ == "__main__":
-    output_dir = "../output"
-    if(not os.path.exists(output_dir)):
-        os.makedirs(output_dir, exist_ok=True)
-    # 进入目录完成编译步骤
-    os.chdir("../../build")
-    subprocess.run(["cmake", ".."])
-    subprocess.run("make")
-    os.chdir("../test/scripts")
+    data_dir = os.path.abspath("../test/data")
+    output_dir = os.path.abspath("../test/output")
+    exe_dir = os.path.abspath("bin")
 
     x = np.arange(0, 10, 0.1)
     true_y = np.sin(x) + 3 * np.sin(2 * x) + 0.5 * x
-    obs_y = true_y + np.random.normal(0, 1, len(x))
+    diff_y = np.cos(x) + 3 * 2 * np.cos(2 * x) + 0.5
+    obs_y = true_y + np.random.normal(0, 5, len(x))
     obs_true_diff = np.sqrt(np.mean((true_y - obs_y)**2))
 
-    with open("../data/sin.txt", "w") as f:
-        f.write(f"{len(x)}, 1\n")
-        for vx in true_y:
-            f.write(f"{vx}\n")
+    # subprocess.run("../../build/bin/TestEnsembleSin")
+    writer = True
+    if writer:
+        data = pd.DataFrame()
+        data['Z'] = obs_y
+        df_writer = pd.ExcelWriter(os.path.join(data_dir, "sin.xlsx"), mode='a')
+        wb = df_writer.book
+        if("Z" in wb.sheetnames):
+            wb.remove(wb["Z"])
+        data.to_excel(df_writer, sheet_name="Z")
+        df_writer.close()
 
-    subprocess.run("../../build/bin/TestEnsembleSin")
+    subprocess.run(os.path.join(exe_dir, "TestEnsembleSin"))
 
-    filter_value = []
-    sigmas = []
-    with open("../data/filter_sin.txt", "r") as f:
-        for line in f:
-            parts = line.strip().split(",")
-            num = float(parts[0])
-            sigma = float(parts[1])
-            filter_value.append(num)
-            sigmas.append(sigma)
-    filter_value = np.array(filter_value[1:]) 
-    filter_true_diff = np.sqrt(np.mean((true_y - filter_value)**2))
-    fig = plt.figure(figsize=(12/2.54, 12/2.54))
-    ax = fig.add_subplot(2, 1, 1)
-    ax.plot(x, true_y, "b-", label="True Value", markersize=2, lw=2)
-    ax.plot(x, obs_y, "ro-", label="Observed Value", markersize=3)
-    ax.plot(x, filter_value, 'g--', label="Filtered Value", alpha=0.8)
-    ax.legend(frameon=False, fontsize=8)
-    ax.set_ylabel("y")
-    ax.set_xlim(-2, 12)
-    ax.set_ylim(-5, 10)
-    ax.text(0.4, 0.05, "$y=x + sin(x)+ 3sin(2x)$",
-            transform=ax.transAxes, fontsize=5)
-    ax.text(0.7, 0.9, f"RMSE_OBS={obs_true_diff:.2f}\nRMSE_FILTER={filter_true_diff:.2f}", transform=ax.transAxes, fontsize=5)
-    ax2 = fig.add_subplot(2, 1, 2)
-    ax2.plot(x, sigmas[1:])
-    ax2.set_ylabel("Variance")
+    fig = plt.figure(figsize=(4, 6))
+    ax = fig.add_subplot(311)
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
+    ax.plot(x, true_y, 'b-')
+    ax.plot(x, obs_y, 'ro')
+    value = pd.read_excel(os.path.join(data_dir, "filter_sin.xlsx"), sheet_name="X")
+    error = pd.read_excel(os.path.join(data_dir, "filter_sin.xlsx"), sheet_name="P")
+    ax.plot(x, value['x'].values, 'g--')
+    ax2.plot(x, error['x'].values, 'k-')
+    filter_true_diff = np.sqrt(np.mean((true_y - value['x'].values)**2))
+    print(obs_true_diff)
+    print(filter_true_diff)
+    ax3.plot(x, diff_y)
+    ax3.plot(x, value['dx'].values)
 
-    ax2.set_xlim(-2, 12)
-    ax2.set_ylim(0, 0.3)
-    ax2.set_xlabel("x")
-    fig.savefig("../output/test_ensemble_kalman.png", dpi=500)
+    plt.show()
