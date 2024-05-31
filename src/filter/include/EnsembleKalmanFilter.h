@@ -236,7 +236,7 @@ class EnsembleModel {
         next(2) = s(2);
         next(1) = s(1) + s(2) * dt;
         next(0) = s(0) + s(1) * dt + 0.5 * s(2) * dt * dt;
-        return s;
+        return next;
     }
 
   public:

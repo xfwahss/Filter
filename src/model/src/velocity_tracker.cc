@@ -4,7 +4,12 @@
 class Model: public EnsembleModel {
   public:
     Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) {
-      Eigen::VectorXd s = const_1derivate_predict(status, dt);
+      Eigen::VectorXd s(status.size());
+      s(0) = status(0) + status(1) * dt;
+      Eigen::VectorXd s2 = const_2derivate_predict(status.segment(1, 3), dt);
+      s(1) = s2(0);
+      s(2) = s2(1);
+      s(3) = s2(2);
       return s;
     }
 };
