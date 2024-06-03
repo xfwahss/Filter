@@ -78,4 +78,5 @@ void Reservoir::predict(const double &dt, const double &flow_in,
     double next_cn = predict_nitrate(seconds, load_nit_in, load_nit_out, ra, rn,
                                      next_volumn);
     res_status update_status(next_wl, next_co, next_ca, next_cn, status.T, status.c_do);
+    update(update_status);
 }
