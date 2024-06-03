@@ -2,9 +2,11 @@
 #define ENSEMBLE_KALMAN_FILTER_H
 #include "../../io/include/FilterIO.h"
 #include "FilterBase.h"
+#include "../../utils/include/umath.h"
 #include <Eigen/Dense>
 #include <random>
 #include <vector>
+
 
 // 集合卡尔曼滤波模板类，只能实现高斯分布采样
 // 模拟类需要实现 update(接收滤波器更新了的参数)， predict(向前推进)方法,
@@ -37,8 +39,6 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     Eigen::VectorXd generate_process_error();
 
     void ensemble_construct(const int &ensemble_size);
-    Eigen::VectorXd multivariate_gaussian_random(Eigen::VectorXd &status,
-                                                 Eigen::MatrixXd &covariance);
     void sample();
     void sample_predict(const double &dt);
     void ensemble_destruct();
@@ -115,30 +115,11 @@ void EnsembleKalmanFilter<T>::step_assimilation(const double &dt,
     update(z, R);
 }
 
-template <class T>
-Eigen::VectorXd EnsembleKalmanFilter<T>::multivariate_gaussian_random(
-    Eigen::VectorXd &status, Eigen::MatrixXd &covariance) {
-    std::random_device seed;
-    std::mt19937_64 engine(seed());
-    std::normal_distribution<double> dist(0.0, 1.0);
-
-    // 使用Eigen库计算Cholesky分解
-    Eigen::LLT<Eigen::MatrixXd> lltOfCov(covariance);
-    Eigen::MatrixXd L = lltOfCov.matrixL();
-
-    // 生成随机数
-    Eigen::VectorXd z(status.size());
-    for (int i = 0; i < status.size(); ++i) {
-        z(i) = dist(engine);
-    }
-    Eigen::VectorXd random_number = status + L * z;
-    return random_number;
-}
-
 template <class T> void EnsembleKalmanFilter<T>::sample() {
     for (int i = 0; i < ensemble.size(); ++i) {
-        Eigen::VectorXd random_num =
-            multivariate_gaussian_random(FilterBase::X, FilterBase::P);
+        // Eigen::VectorXd random_num =
+        //     multivariate_gaussian_random(FilterBase::X, FilterBase::P);
+        Eigen::VectorXd random_num = umath::pos_multi_gauss_random(FilterBase::X, FilterBase::P);
         ensemble[i]->update(random_num);
     }
 }
@@ -243,7 +224,8 @@ class EnsembleModel {
     Eigen::VectorXd get_status() { return status; }
     void update(Eigen::VectorXd &status) { this->status = status; }
     // 子类必须实现predict的方法
-    virtual Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) = 0;
+    virtual Eigen::VectorXd predict(const double &dt,
+                                    const Eigen::VectorXd &status) = 0;
     void step(const double &dt) {
         Eigen::VectorXd predicted_status = predict(dt, status);
         update(predicted_status);

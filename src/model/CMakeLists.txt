@@ -2,12 +2,15 @@ project("model")
 message("Entering project model")
 
 add_executable(Model_Validate src/Validate.cc)
-target_link_libraries(Model_Validate io filter)
+target_link_libraries(Model_Validate io filter utils)
 
 
 add_executable(velocity_tracker src/velocity_tracker.cc)
-target_link_libraries(velocity_tracker io filter)
+target_link_libraries(velocity_tracker io filter utils)
 
 
 add_executable(ModelIntegrate src/ModelIntegrate.cc)
-target_link_libraries(ModelIntegrate io filter reactor)
+target_link_libraries(ModelIntegrate io filter reactor utils)
+
+add_executable(ModelReservoir src/ModelReservoir.cc)
+target_link_libraries(ModelReservoir io filter reactor)

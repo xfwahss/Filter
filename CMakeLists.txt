@@ -11,6 +11,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(src/third_party/eigen)
+add_subdirectory(src/utils)
 add_subdirectory(src/io)
 add_subdirectory(src/reactor)
 add_subdirectory(src/filter)
