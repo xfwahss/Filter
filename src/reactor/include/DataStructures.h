@@ -97,7 +97,22 @@ struct river_status {
     }
 };
 
-struct ammon_status {};
+struct ammon_status {
+    double ro0;
+    double ko1;
+    ammon_status() = default;
+    ammon_status(const double &ro0, const double &ko1) : ro0(ro0), ko1(ko1){};
+    ammon_status &operator=(const Eigen::VectorXd &v) {
+        if (v.size() == 2) {
+            ro0 = v(0);
+            ko1 = v(1);
+            return *this;
+        } else {
+            throw std::length_error(
+                "Length of VectorXd does not match struct:ammon_status");
+        }
+    };
+};
 
 struct nitri_status {
     double ra0;
