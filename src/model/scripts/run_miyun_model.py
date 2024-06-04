@@ -43,7 +43,7 @@ def visualize_var(ax, filein_path, fileout_path, var_name):
     y_obs = data_obs[var_name].values[0:nums]
     y_filter = data_filter[var_name].values[0:nums]
     filtered_error = data_error[var_name].values[0:nums]
-    ax.plot(x, y_obs, '--bo', label='Observation', markersize=2, lw=0.75)
+    ax.plot(x, y_obs, 'bo', label='Observation', markersize=2, lw=0.75)
     ax.plot(x, y_filter, '-r', label='Simulated', lw=0.75)
     ax2 = ax.twinx()
     ax2.plot(x, filtered_error, '-k', label='Error', lw=0.75)
@@ -59,9 +59,9 @@ ax2 = fig.add_subplot(212)
 if __name__ == '__main__':
     filein_path, fileout_path = run_model("build/bin", "test/data", 
                                           "test/output", "Miyun_Model.xlsx", 
-                                          "Miyun_Model_out.xlsx", True)
+                                          "Miyun_Model_out.xlsx", False)
     visualize_var(ax, filein_path, fileout_path, "Water_Level")
-    visualize_var(ax2, filein_path, fileout_path, "Res_Cno")
+    visualize_var(ax2, filein_path, fileout_path, "Res_Cnn")
     plt.show()
 
     # a = np.array(

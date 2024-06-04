@@ -93,12 +93,12 @@ class Model : public EnsembleModel {
         Eigen::VectorXd in  = rivers_in.get_status();
         Eigen::VectorXd out = rivers_out.get_status();
         double ro           = 0;
-        double ra           = ni_proc.rate(res_cdo, res_T, res_cna);
-        double rn           = deni_proc.rate(res_cdo, res_T, res_cnn);
-        // ra = 0;
-        // rn = 0;
+        // double ra           = ni_proc.rate(res_cdo, res_T, res_cna);
+        // double rn           = deni_proc.rate(res_cdo, res_T, res_cnn);
+        double ra = 0;
+        double rn = 0;
         reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2),
-                          in(3), out(3), ro, ra, rn);
+                        in(3), out(3), ro, ra, rn);
         res_status next_res_status = reservoir.get_status();
         predict_status(0)          = in_flow1;
         predict_status(1)          = in_flow2;
