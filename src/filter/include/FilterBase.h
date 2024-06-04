@@ -7,7 +7,7 @@ class FilterBase {
     Eigen::VectorXd X;
     Eigen::MatrixXd P;
   public:
-    FilterBase();
-    ~FilterBase();
+    FilterBase() = default;
+    ~FilterBase() = default;
 };
 #endif
