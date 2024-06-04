@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # 进入目录完成编译步骤
     utils.compile(False)
 
-    obs_error, da_error, a_proc_error, v_proc_error, x_proc_error = 1, 0.01, 0.01, 0.01, 0.01
+    obs_error, da_error, a_proc_error, v_proc_error, x_proc_error = 0.5, 0.01, 0.01, 0.01, 0.01
 
     # 数据生成
     a = 0.2
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     true_v = 2 + a * t
     true_x = (2 + 0.5 * a * t) * t
     obs_x = true_x + np.random.normal(0, obs_error, len(t))
-    calc_v = obs_x[1:] - obs_x[0:-1]
+    calc_v = (obs_x[1:] - obs_x[0:-1])/0.1
 
 
     # 数据写入
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     ax.plot(t, y_ana, label='Filtered_X', color='g', lw=0.75)
     v_ax.plot(t, v_ana, label='Filtered_V', color='b', lw=0.75)
     # v_ax.plot(t, df_ana['a'].values, label='a')
-    v_ax.plot(t[0:-1], calc_v, label='Calc_V=dx/dt', color='r', lw=0.75)
+    v_ax.plot(t[0:-1], calc_v, label='Calc_V=dx/dt', color='r', lw=0.75, alpha=0.5)
     err_ax.plot(t, error_ana, lw=0.75, color='k')
     v_err_ax.plot(t, v_error_ana, lw=0.75, color='k')
     # v_err_ax.plot(t, df_P['a'].values)
