@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <OpenXLSX.hpp>
 #include <vector>
+#include <unordered_map>
 
 class ExcelIO : public FileIO {
   public:
@@ -11,7 +12,7 @@ class ExcelIO : public FileIO {
     ~ExcelIO();
     // 空白单元格自动填充-999
     Eigen::VectorXd read_row(const std::string &sheet_name, const int &row,
-                             const int &start_column = 1);
+                             const int &start_column = 1, const int&end_columns=-1);
     Eigen::VectorXd read_column(const std::string &sheet_name,
                                 const int &column, const int &start_row = 1,
                                 const int &element_nums = 0);
@@ -38,6 +39,10 @@ class ExcelIO : public FileIO {
     int get_rows(const std::string &sheet_name);
     int get_columns(const std::string &sheet_name);
     void remove_sheet(const std::string &sheet_name);
+
+    std::unordered_map<std::string, double>
+    read_dict(const std::string &sheet_name, const int &index_column,
+              const int &value_column, const int &start_row = 1);
 
   protected:
     // 以double类型读取单元格数据

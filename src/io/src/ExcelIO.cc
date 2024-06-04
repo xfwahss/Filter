@@ -73,8 +73,9 @@ double ExcelIO::get_cell_value(const std::string &sheet_name, const int &row,
 }
 
 Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row,
-                                  const int &start_column) {
-    int nums = get_columns(sheet_name);
+                                  const int &start_column,
+                                  const int &end_columns) {
+    int nums = (end_columns == -1) ? get_columns(sheet_name) : end_columns;
     Eigen::VectorXd value(nums - start_column + 1);
     for (int i = start_column; i < nums + 1; ++i) {
         value(i - start_column) = get_cell_value(sheet_name, row, i);
@@ -163,4 +164,26 @@ void ExcelIO::write_cell_string(const std::string &value,
     }
     auto wks                      = file.workbook().worksheet(sheet_name);
     wks.cell(row, column).value() = value;
+}
+
+std::unordered_map<std::string, double>
+ExcelIO::read_dict(const std::string &sheet_name, const int &index_column,
+                   const int &value_column, const int &start_row) {
+    std::unordered_map<std::string, double> dicts;
+    if (read_cell_string(sheet_name, start_row, index_column) !=
+        "element_nums") {
+        throw std::invalid_argument(
+            "Please set the number of parameters to be "
+            "read as the first parameter, format as 'param_nums 1'");
+    } else {
+        int element_nums =
+            read_column(sheet_name, value_column, start_row, 1)(0);
+        for (int i = 1; i < element_nums + 1; ++i) {
+            std::string index =
+                read_cell_string(sheet_name, i + start_row, index_column);
+            dicts[index] =
+                read_column(sheet_name, value_column, start_row + i, 1)(0);
+        }
+    }
+    return dicts;
 }
