@@ -1,7 +1,9 @@
 /*!
  * @file DataStructues.h
- * @brief 存储各系统组件的的状态数据结构，并实现和Eigen::VectorXd的互转
- * 实现了赋值运算符重载
+ * @brief Define the data structure to store the status of each system
+ * component, and provide converting function between Eigen::VectorXd, and
+ * overloads the assignment operator for Eigen::VectorXd to assign values
+ * ​​to the structure
  * @author xfwahss
  * @version main-v0.1
  * @date 2024-04-28
@@ -10,6 +12,26 @@
 #define DATA_STRUCTURES_H
 #include <Eigen/Dense>
 #include <stdexcept>
+
+struct alignas(8) status_base {
+    double element_nums = 0;
+    status_base()       = default;
+    operator Eigen::VectorXd() const {
+        Eigen::VectorXd v(int(this->element_nums));
+        double *first_p = const_cast<double *>(&element_nums);
+        for (int i = 0; i < element_nums; ++i) {
+            v(i) = *(first_p + i + 1);
+        }
+        return v;
+    }
+};
+
+struct test_status : public status_base {
+    double a;
+    double b;
+    double c;
+    test_status() { element_nums = 3; }
+};
 
 // 存储水库状态
 struct res_status {
