@@ -60,6 +60,14 @@ std::unordered_map<std::string, double> ReservoirIO::read_init() {
 
 void ReservoirIO::write(const Eigen::VectorXd &value) {
     if (write_index == 1) {
+        std::vector<std::string> names;
+        names.push_back("wl");
+        names.push_back("c_no");
+        names.push_back("c_na");
+        names.push_back("c_nn");
+        names.push_back("T");
+        names.push_back("c_do");
+        file_out.write_header(names, "Value", write_index);
         ++write_index;
     };
     file_out.write_row(value, "Value", write_index);
