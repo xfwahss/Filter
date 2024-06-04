@@ -9,3 +9,6 @@ add_executable(TestRiverSystem ./test/TestRiverSystem.cc)
 target_link_libraries(TestDenitrification reactor io)
 target_link_libraries(TestNitrification reactor io)
 target_link_libraries(TestRiverSystem reactor io)
+
+add_executable(TestDataStructure ./test/TestDataStructures.cc)
+target_link_libraries(TestDataStructure reactor io)
