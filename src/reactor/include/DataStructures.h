@@ -11,6 +11,7 @@
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 #include <Eigen/Dense>
+#include <iostream>
 #include <stdexcept>
 
 struct alignas(8) status_base {
@@ -23,6 +24,26 @@ struct alignas(8) status_base {
             v(i) = *(first_p + i + 1);
         }
         return v;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const status_base &p) {
+        double *first_p = const_cast<double *>(&p.element_nums);
+        for (int i = 0; i < p.element_nums; ++i) {
+            os << "value(" << i << "):  " << *(first_p + i + 1) << "\n";
+        }
+        return os;
+    }
+
+    status_base& operator=(const Eigen::VectorXd &v) {
+        if (v.size() == this->element_nums) {
+            double *first_p = const_cast<double *>(&this->element_nums);
+            for (int i = 0; i < v.size(); ++i) {
+                *(first_p + i + 1) = v(i);
+            }
+            return *this;
+        } else {
+            throw std::length_error("Length of VectorXd does not match status");
+        }
     }
 };
 
