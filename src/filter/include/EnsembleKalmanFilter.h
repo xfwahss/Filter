@@ -122,13 +122,16 @@ template <class T> void EnsembleKalmanFilter<T>::destruct() {
 }
 
 template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
+    Eigen::VectorXd (*gauss_random)(Eigen::VectorXd &mean,
+                                    Eigen::MatrixXd &cov);
+    if (ensure_pos) {
+        gauss_random = umath::pos_multi_gauss_random;
+    } else {
+        gauss_random = umath::multivariate_gaussian_random;
+    }
     for (int i = 0; i < ensemble.size(); ++i) {
         Eigen::VectorXd random_num;
-        if (ensure_pos) {
-            random_num = umath::pos_multi_gauss_random(X, P);
-        } else {
-            random_num = umath::multivariate_gaussian_random(X, P);
-        }
+        random_num = gauss_random(X, P);
         ensemble[i]->update(random_num);
     }
 }
