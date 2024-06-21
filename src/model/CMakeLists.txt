@@ -14,3 +14,9 @@ target_link_libraries(ModelIntegrate io filter reactor utils)
 
 add_executable(ModelReservoir src/ModelReservoir.cc)
 target_link_libraries(ModelReservoir io filter reactor)
+
+add_executable(ModelDegrade src/Model_Degrade.cc)
+target_link_libraries(ModelDegrade io filter reactor utils)
+
+add_executable(TestSpdLog src/Test_Logger.cc)
+target_link_libraries(TestSpdLog spdlog)
