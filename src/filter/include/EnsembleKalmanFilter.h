@@ -132,7 +132,7 @@ template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
     for (int i = 0; i < ensemble.size(); ++i) {
         Eigen::VectorXd random_num;
         random_num = gauss_random(X, P);
-        ensemble[i]->update(random_num);
+        ensemble[i]->update(random_num, X,  P);
     }
 }
 
@@ -213,6 +213,8 @@ template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::covariance() {
 class EnsembleModel {
   private:
     Eigen::VectorXd status;
+    Eigen::VectorXd Ensemble_status;
+    Eigen::MatrixXd Ensemble_P;
 
   protected:
     // 状态不变更新
@@ -247,7 +249,18 @@ class EnsembleModel {
 
   public:
     Eigen::VectorXd get_status() { return status; }
-    void update(Eigen::VectorXd &status) { this->status = status; }
+    // 初始化时与整体的均值和协方差一起存储
+    void update(Eigen::VectorXd &status, Eigen::VectorXd &Ensemble_status,
+                Eigen::MatrixXd &Ensemble_P) {
+        this->status = status;
+        this->Ensemble_status = Ensemble_status;
+        this->Ensemble_P = Ensemble_P;
+    }
+
+    void update(Eigen::VectorXd &status) {
+        this->status = status;
+    }
+
     // 子类必须实现predict的方法
     virtual Eigen::VectorXd predict(const double &dt,
                                     const Eigen::VectorXd &status) = 0;
