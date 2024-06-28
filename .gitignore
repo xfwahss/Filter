@@ -10,10 +10,3 @@
 **/__pycache__
 /.cache
 /build
-
-/src/io/test/build
-/src/filter/test/build
-/src/reactor/test/build
-/src/model/build
-/src/model/input
-/src/model/tmp
