@@ -1,5 +1,5 @@
 project("model")
-message("Entering project model")
+message(STATUS "Entering project model")
 
 add_executable(Model_Validate src/Validate.cc)
 target_link_libraries(Model_Validate io filter utils)
@@ -16,7 +16,10 @@ add_executable(ModelReservoir src/ModelReservoir.cc)
 target_link_libraries(ModelReservoir io filter reactor)
 
 add_executable(ModelDegrade src/Model_Degrade.cc)
-target_link_libraries(ModelDegrade io filter reactor utils)
+target_link_libraries(ModelDegrade io filter reactor utils spdlog)
+target_include_directories(ModelDegrade PRIVATE ${ROOT_CONFIG_DIR})
 
 add_executable(TestSpdLog src/Test_Logger.cc)
 target_link_libraries(TestSpdLog spdlog)
+
+add_executable(TestArgs test/TestArgs.cc)
