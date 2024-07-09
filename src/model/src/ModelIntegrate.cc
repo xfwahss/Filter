@@ -3,7 +3,7 @@
 #include "../../reactor/include/Nitrification.h"
 #include "../../reactor/include/Reservoir.h"
 #include "../../reactor/include/RiverSystem.h"
-#include "../../utils/commands.h"
+#include "../../utils/include/umath.h"
 
 class Model : public EnsembleModel {
   public:
@@ -189,7 +189,7 @@ class ModelIO : public FilterIO {
             if (z_value(i) != 0) {
                 for (int j = 0; j < mea_nums; ++j) {
                     obs_mat(j, i) =
-                        tools::random_double(z_value(i), r_read_value(i, i));
+                        umath::randomd(z_value(i), r_read_value(i, i));
                 }
             }
         }
@@ -238,7 +238,7 @@ class ModelIO : public FilterIO {
         }
 
         // 考虑了变量之间的相关关系的求值模式
-        r_value = tools::covariance(obs_mat);
+        r_value = umath::covariance(obs_mat);
         // r_value = r_read_value; // 这是不考虑变量之间关系的R求值模式
 
         // 采样计算协方差的变量方差使用读取的方差
@@ -268,8 +268,8 @@ class ModelIO : public FilterIO {
     // 重写虚函数方法
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
                   const int &index) {
-        using tools::exclude_mean;
-        using tools::handle_miss;
+        using umath::exclude_mean;
+        using umath::fill_missed_value;
 
         in_value  = file.read_row("Rivers_in", 2 + index, 2);
         out_value = file.read_row("Rivers_out", 2 + index, 2);
@@ -283,29 +283,29 @@ class ModelIO : public FilterIO {
         z_value(4) = res_value(0);
 
         // 水质数据
-        double baihe_cno = handle_miss((in_value(4))) -
-                           handle_miss(in_value(3)) - handle_miss(in_value(2));
-        double chaohe_cno = handle_miss(in_value(7)) -
-                            handle_miss(in_value(6)) - handle_miss(in_value(5));
+        double baihe_cno = fill_missed_value((in_value(4))) -
+                           fill_missed_value(in_value(3)) - fill_missed_value(in_value(2));
+        double chaohe_cno = fill_missed_value(in_value(7)) -
+                            fill_missed_value(in_value(6)) - fill_missed_value(in_value(5));
         z_value(5)  = baihe_cno;
-        z_value(6)  = handle_miss(in_value(2));
-        z_value(7)  = handle_miss(in_value(3));
+        z_value(6)  = fill_missed_value(in_value(2));
+        z_value(7)  = fill_missed_value(in_value(3));
         z_value(8)  = chaohe_cno;
-        z_value(9)  = handle_miss(in_value(5));
-        z_value(10) = handle_miss(in_value(6));
+        z_value(9)  = fill_missed_value(in_value(5));
+        z_value(10) = fill_missed_value(in_value(6));
 
-        double baihedam_cno = handle_miss(out_value(4)) -
-                              handle_miss(out_value(3)) -
-                              handle_miss(out_value(2));
-        double chaohedam_cno = handle_miss(out_value(7)) -
-                               handle_miss(out_value(6)) -
-                               handle_miss(out_value(5));
+        double baihedam_cno = fill_missed_value(out_value(4)) -
+                              fill_missed_value(out_value(3)) -
+                              fill_missed_value(out_value(2));
+        double chaohedam_cno = fill_missed_value(out_value(7)) -
+                               fill_missed_value(out_value(6)) -
+                               fill_missed_value(out_value(5));
         z_value(11) = baihedam_cno;
-        z_value(12) = handle_miss(out_value(2));
-        z_value(13) = handle_miss(out_value(3));
+        z_value(12) = fill_missed_value(out_value(2));
+        z_value(13) = fill_missed_value(out_value(3));
         z_value(14) = chaohedam_cno;
-        z_value(15) = handle_miss(out_value(5));
-        z_value(16) = handle_miss(out_value(6));
+        z_value(15) = fill_missed_value(out_value(5));
+        z_value(16) = fill_missed_value(out_value(6));
 
         double res_T, res_do, res_cna, res_cnn, res_cno;
         res_T   = exclude_mean({res_value(1), res_value(6), res_value(11),
@@ -347,7 +347,7 @@ void run(const std::string &filename_in, const std::string &filename_out) {
 }
 
 int main(int argc, char *argv[]) {
-    auto options             = tools::get_args(argc, argv);
+    auto options             = umath::get_args(argc, argv);
     std::string filename_in  = "Miyun_Model.xlsx";
     std::string filename_out = "Miyun_Model_out.xlsx";
     for (const auto &pair : options) {

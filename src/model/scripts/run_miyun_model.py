@@ -61,7 +61,7 @@ if __name__ == '__main__':
     ax4 = fig.add_axes_cm("Res_Cno", 9.2, 5.7, 6, 4, 'left upper')
     filein_path, fileout_path = run_model("build/bin", "test/data", 
                                           "test/output", "Miyun_Model.xlsx", 
-                                          "Miyun_Model_out.xlsx", False)
+                                          "Miyun_Model_out.xlsx", True)
     visualize_var(ax, filein_path, fileout_path, "Water_Level", '水库水位(m)')
     visualize_var(ax2, filein_path, fileout_path, "Res_Cnn", '水库硝氮(mg/L)')
     visualize_var(ax3, filein_path, fileout_path, "Res_Cna", '水库氨氮(mg/L)')
