@@ -23,8 +23,6 @@ add_executable(ModelDegrade src/Model_Degrade.cc)
 target_link_libraries(ModelDegrade io filter reactor utils spdlog)
 target_include_directories(ModelDegrade PRIVATE ${ROOT_CONFIG_DIR})
 
-add_executable(TestSpdLog src/Test_Logger.cc)
-target_link_libraries(TestSpdLog spdlog)
 
 add_executable(TestArgs test/TestArgs.cc)
 
