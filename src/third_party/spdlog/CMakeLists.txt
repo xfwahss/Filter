@@ -60,7 +60,7 @@ option(SPDLOG_BUILD_ALL "Build all artifacts" OFF)
 
 # build shared option
 # 使用动态库
-option(SPDLOG_BUILD_SHARED "Build shared library" ON)
+option(SPDLOG_BUILD_SHARED "Build shared library" OFF)
 
 # precompiled headers option
 option(SPDLOG_ENABLE_PCH "Build static or shared library using precompiled header to speed up compilation time" OFF)
