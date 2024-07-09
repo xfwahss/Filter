@@ -9,7 +9,6 @@ from plotstyles import tools
 import utils
 from plotstyles.figure import Figure
 
-
 def rmse(value_model:np.array, value_obs:np.array):  
     """  
     Calculate Root Mean Squared Error (RMSE)  
@@ -59,23 +58,18 @@ if __name__ == "__main__":
     # 数据写入
     init_X = np.array([[obs_x[0]], 
                        [0], 
-                       [0],
-                     [0] ])
-    init_P = np.array([[2, 0, 0, 0], 
-                       [0, 2, 0, 0], 
-                       [0, 0, 2, 0],
-                       [0, 0, 0, 2]])
-    H = np.array([[1, 0, 0, 0]])
+                    ])
+    init_P = np.array([[2, 0], 
+                       [0, 2]])
+    H = np.array([[1, 0]])
 
     Q = np.array([[x_proc_error], 
-                  [v_proc_error], 
-                  [a_proc_error],
-                  [da_error]])
+                  [v_proc_error]])
 
-    df_init_x = pd.DataFrame(init_X, index=['x', 'v', 'a', 'da'])
+    df_init_x = pd.DataFrame(init_X, index=['x', 'v'])
     df_init_p = pd.DataFrame(init_P)
     df_h = pd.DataFrame(H)
-    df_q = pd.DataFrame(Q, index=['x', 'v', 'a', 'da'])
+    df_q = pd.DataFrame(Q, index=['x', 'v'])
     df_obs = pd.DataFrame(obs_x)
     df_r = pd.DataFrame(np.ones_like(t) * 3)
 
@@ -83,7 +77,7 @@ if __name__ == "__main__":
         if (name in wb.sheetnames):
             wb.remove(wb[name])
 
-    with pd.ExcelWriter("../data/velocity_tracker_in.xlsx", mode='a') as f:
+    with pd.ExcelWriter("../data/velocity_tracker_in_1d.xlsx", mode='a') as f:
         wb = f.book
         remove_sheet("Init_X", wb)
         remove_sheet("Init_P", wb)
@@ -98,7 +92,7 @@ if __name__ == "__main__":
         df_obs.to_excel(f, sheet_name="Obs", header=1, index=True)
         df_r.to_excel(f, sheet_name="R", header=1, index=True)
 
-    subprocess.run("../../build/bin/velocity_tracker")
+    subprocess.run("../../build/bin/velocity_tracker_1d")
 
     fig = Figure(16, 9)
     ax = fig.add_axes_cm('ax', 2, 1, 6, 4, 'left upper')
@@ -112,27 +106,26 @@ if __name__ == "__main__":
     ax.plot(t, obs_x, 'ro', markersize=2, label='观测值', lw=0.75)
     
     # 绘图
-    df_ana = pd.read_excel("../data/velocity_tracker_out.xlsx", sheet_name="X")
-    df_P = pd.read_excel("../data/velocity_tracker_out.xlsx", sheet_name="P")
+    df_ana = pd.read_excel("../data/velocity_tracker_out_1d.xlsx", sheet_name="X")
+    df_P = pd.read_excel("../data/velocity_tracker_out_1d.xlsx", sheet_name="P")
     y_ana = df_ana['x'].values
     v_ana = df_ana['v'].values
-    error_ana = df_P['x'].values
-    v_error_ana = df_P['v'].values
-
 
     error_v = rmse(v_ana, true_v)
     print(error_v)
+    
+    error_ana = df_P['x'].values
+    v_error_ana = df_P['v'].values
     ax.plot(t, y_ana, label='同化值', color='g', lw=0.75)
     v_ax.plot(t, v_ana, label='同化值', color='b', lw=0.75)
     # v_ax.plot(t, df_ana['a'].values, label='a')
     v_ax.plot(t[0:-1], calc_v, label='$Q=dV/dt$', color='r', lw=0.75, alpha=0.5)
-
-    v_ax.text(0.7, 0.1, f'RMSE={error_v:.2f}', transform=v_ax.transAxes, fontsize=8)
     err_ax.plot(t, error_ana, lw=0.75, color='k')
     v_err_ax.plot(t, v_error_ana, lw=0.75, color='k')
     # v_err_ax.plot(t, df_P['a'].values)
     ax.legend(fontsize=8, frameon=False)
     v_ax.legend(fontsize=8, frameon=False)
+    v_ax.text(0.7, 0.1, f'RMSE={error_v:.2f}', transform=v_ax.transAxes, fontsize=8)
 
     ax.set_ylim(-10, 300)
     ax.set_xlim(-5, 45)
@@ -174,5 +167,5 @@ if __name__ == "__main__":
 
 
 
-    fig.savefig("../../doc/线性模型参数同化.jpg", dpi=1000)
+    fig.savefig("../../doc/线性模型参数同化_1d.jpg", dpi=1000)
     fig.show()
