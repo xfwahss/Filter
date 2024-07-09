@@ -1,6 +1,6 @@
 import pandas as pd
 from plotstyles.fonts import global_fonts
-from matplotlib import pyplot as plt
+from plotstyles.figure import Figure
 import os
 import subprocess
 import numpy as np
@@ -13,7 +13,7 @@ def run_model(bin_dir, src_dir, out_dir, filename_in, filename_out, toggle=True)
         subprocess.run([exe_path, "-fi", filein_path, "-fo", fileout_path])
     return filein_path, fileout_path
 
-def visualize_var(ax, filein_path, fileout_path, var_name):
+def visualize_var(ax, filein_path, fileout_path, var_name, ylabel):
     if var_name in ["Baihe_Flow", "Chaohe_Flow", "Baihe_Cno", "Baihe_Cna",
                     "Baihe_Cnn", "Chaohe_Cno", "Chaohe_Cna", "Chaohe_Cnn"]:
         data_obs = pd.read_excel(filein_path, sheet_name="Rivers_in")
@@ -45,31 +45,26 @@ def visualize_var(ax, filein_path, fileout_path, var_name):
     filtered_error = data_error[var_name].values[0:nums]
     ax.plot(x, y_obs, 'bo', label='Observation', markersize=2, lw=0.75)
     ax.plot(x, y_filter, '-r', label='Simulated', lw=0.75)
-    ax2 = ax.twinx()
-    ax2.plot(x, filtered_error, '-k', label='Error', lw=0.75)
+    # ax2 = ax.twinx()
+    # ax2.plot(x, filtered_error, '-k', label='Error', lw=0.75)
     # ax2.set_ylim(0, 10)
     ax.legend(frameon=False, loc='upper right')
-    ax.set_xlabel("Date")
-    ax.set_ylabel(var_name)
+    ax.set_xlabel("时间步(日)")
+    ax.set_ylabel(ylabel)
 
-fig = plt.figure()
-ax = fig.add_subplot(211)
-ax2 = fig.add_subplot(212)
 
 if __name__ == '__main__':
+    fig = Figure(16, 11)
+    ax = fig.add_axes_cm("WL", 1.8, 0.5, 6, 4, 'left upper')
+    ax2 = fig.add_axes_cm("Res_Cnn", 9.2, 0.5, 6, 4, 'left upper')
+    ax3 = fig.add_axes_cm("Res_Cna", 1.8, 5.7, 6, 4, 'left upper')
+    ax4 = fig.add_axes_cm("Res_Cno", 9.2, 5.7, 6, 4, 'left upper')
     filein_path, fileout_path = run_model("build/bin", "test/data", 
                                           "test/output", "Miyun_Model.xlsx", 
                                           "Miyun_Model_out.xlsx", False)
-    visualize_var(ax, filein_path, fileout_path, "Water_Level")
-    visualize_var(ax2, filein_path, fileout_path, "Res_Cnn")
-    plt.show()
-
-    # a = np.array(
-    #     [
-    #         [1, -999, -999, 4],
-    #         [2, -999, -999, 6],
-    #         [3, -999, -999, 8],
-    #     ]
-    # )
-    # print(np.cov(a.T))
-    # print(np.cov(np.array([[5, 6], [8, 8]])))
+    visualize_var(ax, filein_path, fileout_path, "Water_Level", '水库水位(m)')
+    visualize_var(ax2, filein_path, fileout_path, "Res_Cnn", '水库硝氮(mg/L)')
+    visualize_var(ax3, filein_path, fileout_path, "Res_Cna", '水库氨氮(mg/L)')
+    visualize_var(ax4, filein_path, fileout_path, "Res_Cno", '水库有机氮(mg/L)')
+    fig.savefig('水库同化结果.png', dpi=700)
+    fig.show()

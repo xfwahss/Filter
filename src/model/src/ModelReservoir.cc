@@ -148,7 +148,7 @@ void ReservoirModel::predict(const double &dt) {
 
     res.predict(dt, flow_in, flow_out, load_org_in, load_org_out, load_amm_in,
                 load_amm_out, load_nit_in, load_nit_out, ro, ra, rn);
-    std::cout << "After--wl: " << res.get_status().wl
+    std::cout << "wl: " << res.get_status().wl
               << ", c_no: " << res.get_status().c_no
               << ", c_na: " << res.get_status().c_na
               << ", c_nn: " << res.get_status().c_nn << std::endl;
