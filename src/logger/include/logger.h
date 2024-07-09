@@ -1,19 +1,17 @@
 #ifndef LOGGER_H
 #define LOGGER_H
-#include <spdlog/spdlog.h>
 #include <Eigen/Dense>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
-// 创建spdlog的子类
-class Logger : public spdlog::logger {
-  public:
-    // 使用spdlog::logger的构造函数
-    using spdlog::logger::logger;
+namespace logger {
+std::shared_ptr<spdlog::logger> get(const std::string &logger_name="console", const std::string &filename = std::string());
+void log_vectorxd(const std::string &msg, const Eigen::VectorXd &vec, const std::string &logger_name = "console",
+                  const std::string &filename = std::string());
 
-    // 封装输出Eigen::VectorXd的方法
-    void infoEigenVector(const std::string &msg, const Eigen::VectorXd &vec);
-
-    // 封装输出Eigen::MatrixXd的方法
-    void infoEigenMatrix(const std::string &msg, const Eigen::MatrixXd &mat);
-};
+void log_matrixxd(const std::string &msg, const Eigen::MatrixXd &mat, const std::string &logger_name = "console",
+                  const std::string &filename = std::string());
+} // namespace logger
 
 #endif
