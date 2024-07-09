@@ -12,11 +12,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # 全局配置文件
 configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
 set(ROOT_CONFIG_DIR ${PROJECT_BINARY_DIR})
+# 全局允许测试，子目录中详细展开
+option(BUILD_TEST "Whether or not to build the tests" ON)
+if (${BUILD_TEST})
+    enable_testing()  # Enable testing only works in root scope
+endif ()
+
 # 全局包括eigen的头文件
 include_directories(src/third_party/eigen)
-# 编译spdlog动态库，加快编译速度
-add_subdirectory(src/third_party/spdlog)
-include_directories(src/third_party/spdlog/include)
+# 全局添加logger库
+add_subdirectory(src/logger)
+include_directories(${CMAKE_SOURCE_DIR}/src/logger/include)
+
 # 全局添加args库
 include_directories(src/third_party/args)
 # 编译utils库
