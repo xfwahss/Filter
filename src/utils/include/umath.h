@@ -26,7 +26,7 @@ Eigen::VectorXd pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::MatrixXd &c
 Eigen::MatrixXd covariance(const Eigen::MatrixXd &mat);
 
 // 剔除空值后求均值
-double exclude_mean(std::initializer_list<double> args);
+double avg_exclude_nans(std::initializer_list<double> args);
 
 std::unordered_map<std::string, std::string> get_args(int argc, char *argv[]);
 }; // namespace umath

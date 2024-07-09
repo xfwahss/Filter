@@ -268,7 +268,7 @@ class ModelIO : public FilterIO {
     // 重写虚函数方法
     void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
                   const int &index) {
-        using umath::exclude_mean;
+        using umath::avg_exclude_nans;
         using umath::fill_missed_value;
 
         in_value  = file.read_row("Rivers_in", 2 + index, 2);
@@ -308,15 +308,15 @@ class ModelIO : public FilterIO {
         z_value(16) = fill_missed_value(out_value(6));
 
         double res_T, res_do, res_cna, res_cnn, res_cno;
-        res_T   = exclude_mean({res_value(1), res_value(6), res_value(11),
+        res_T   = avg_exclude_nans({res_value(1), res_value(6), res_value(11),
                                 res_value(16), res_value(21), res_value(26)});
-        res_do  = exclude_mean({res_value(2), res_value(7), res_value(12),
+        res_do  = avg_exclude_nans({res_value(2), res_value(7), res_value(12),
                                 res_value(17), res_value(22), res_value(27)});
-        res_cna = exclude_mean({res_value(3), res_value(8), res_value(13),
+        res_cna = avg_exclude_nans({res_value(3), res_value(8), res_value(13),
                                 res_value(18), res_value(23), res_value(28)});
-        res_cnn = exclude_mean({res_value(4), res_value(9), res_value(14),
+        res_cnn = avg_exclude_nans({res_value(4), res_value(9), res_value(14),
                                 res_value(19), res_value(24), res_value(29)});
-        res_cno = exclude_mean({res_value(5), res_value(10), res_value(15),
+        res_cno = avg_exclude_nans({res_value(5), res_value(10), res_value(15),
                                 res_value(20), res_value(25), res_value(30)}) -
                   res_cna - res_cnn;
         z_value(17) = res_cno;

@@ -76,7 +76,7 @@ Eigen::MatrixXd umath::covariance(const Eigen::MatrixXd &mat) {
 }
 
 
-double umath::exclude_mean(std::initializer_list<double> args) {
+double umath::avg_exclude_nans(std::initializer_list<double> args) {
     double sum   = 0;
     double count = 0;
     for (double arg : args) {
