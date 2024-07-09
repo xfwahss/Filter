@@ -3,13 +3,15 @@ project(io)
 message("Entring project ${PROJECT_NAME}")
 set(CMAKE_CXX_STANDARD 17)
 
+
+set(OPENXLSX_LIBRARY_TYPE SHARED)
 add_subdirectory(../third_party/openxlsx/OpenXLSX ${CMAKE_BINARY_DIR}/src/third_party/openxlsx)
 
 # 封装Project为动态库
 aux_source_directory(src DIR_SRC)
 add_library(${PROJECT_NAME} SHARED ${DIR_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenXLSX::OpenXLSX)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenXLSX::OpenXLSX spdlog)
 
 # 测试文件
 add_executable(TestOpenXlsx test/TestOpenXlsx.cc)

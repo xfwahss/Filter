@@ -1,4 +1,5 @@
 #include "../include/FilterIO.h"
+#include <spdlog/spdlog.h>
 
 // 负责状态观测步，用于将观测数据由文件读入转化为均值和方差
 // 初始状态读取 和 相关向量的给定
@@ -97,8 +98,10 @@ void FilterIO::write_P(const Eigen::MatrixXd &P, const std::string &sheet_name,
 void FilterIO::read(Eigen::VectorXd &z, Eigen::MatrixXd &R) {
 
     if (index < total_nums) {
-        std::cout << "Processing measurement value of index: " << index + 1
-                  << std::endl;
+
+        spdlog::info("Processing measurement of index: {}", index + 1);
+        // std::cout << "Processing measurement value of index: " << index + 1
+                //   << std::endl;
         read_one(file_in, z, R, index);
         increment_index();
     } else {
