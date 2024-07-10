@@ -19,25 +19,21 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
-
 template <class T> class EnsembleKalmanFilter : public FilterBase {
   public:
     EnsembleKalmanFilter(const int &ensemble_size);
     ~EnsembleKalmanFilter();
 
-    void init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H,
-              Eigen::VectorXd Q);
+    void init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H, Eigen::VectorXd Q, const unsigned int &seed = 0);
 
     // 单步同化
-    void step_assimilation(const double &dt, const Eigen::VectorXd &z,
-                           const Eigen::MatrixXd &R, bool ensure_pos);
+    void step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R, bool ensure_pos);
     // 批量同化
     /*
      * @param ensure_pos 是否保证采样的值全为正数
      */
-    void batch_assimilation(FilterIO *filterio, const double &dt,
-                            const Eigen::MatrixXd &R = Eigen::MatrixXd(),
-                            bool ensure_pos          = false);
+    void batch_assimilation(FilterIO *filterio, const double &dt, const Eigen::MatrixXd &R = Eigen::MatrixXd(),
+                            bool ensure_pos = false);
     Eigen::VectorXd status();
     Eigen::MatrixXd covariance();
 
@@ -55,6 +51,8 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     Eigen::VectorXd diff_obs_prior;
     // 根据给定的方差生成一个状态的预测随机误差
     Eigen::VectorXd generate_process_error();
+    // 随机采样种子
+    unsigned int seed;
 
     // 构建集合
     void construct(const int &ensemble_size);
@@ -71,25 +69,20 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     void update(Eigen::VectorXd z, Eigen::MatrixXd R);
 };
 
-template <class T>
-EnsembleKalmanFilter<T>::EnsembleKalmanFilter(const int &ensemble_size) {
+template <class T> EnsembleKalmanFilter<T>::EnsembleKalmanFilter(const int &ensemble_size) {
     ensemble.reserve(ensemble_size);
     construct(ensemble_size);
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::step_assimilation(const double &dt,
-                                                const Eigen::VectorXd &z,
-                                                const Eigen::MatrixXd &R,
+void EnsembleKalmanFilter<T>::step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
                                                 bool ensure_pos) {
     predict(dt, ensure_pos);
     update(z, R);
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio,
-                                                 const double &dt,
-                                                 const Eigen::MatrixXd &R,
+void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio, const double &dt, const Eigen::MatrixXd &R,
                                                  bool ensure_pos) {
     Eigen::VectorXd z;
     Eigen::MatrixXd r_file;
@@ -115,8 +108,7 @@ void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio,
     }
 }
 
-template <class T>
-void EnsembleKalmanFilter<T>::construct(const int &ensemble_size) {
+template <class T> void EnsembleKalmanFilter<T>::construct(const int &ensemble_size) {
     for (int i = 0; i < ensemble_size; i++) {
         T *ptr = new T();
         ensemble.push_back(ptr);
@@ -131,8 +123,7 @@ template <class T> void EnsembleKalmanFilter<T>::destruct() {
 }
 
 template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
-    Eigen::VectorXd (*gauss_random)(Eigen::VectorXd &mean,
-                                    Eigen::MatrixXd &cov);
+    Eigen::VectorXd (*gauss_random)(Eigen::VectorXd &mean, Eigen::MatrixXd &cov, const unsigned int &seed);
     if (ensure_pos) {
         gauss_random = umath::pos_multi_gauss_random;
     } else {
@@ -140,20 +131,18 @@ template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
     }
     for (int i = 0; i < ensemble.size(); ++i) {
         Eigen::VectorXd random_num;
-        random_num = gauss_random(X, P);
+        random_num = gauss_random(X, P, seed);
         ensemble[i]->update(random_num, X, P, diff_obs_prior);
     }
 }
 
-template <class T>
-void EnsembleKalmanFilter<T>::sample_predict(const double &dt) {
+template <class T> void EnsembleKalmanFilter<T>::sample_predict(const double &dt) {
     for (int i = 0; i < ensemble.size(); ++i) {
         ensemble[i]->step(dt);
     }
 }
 
-template <class T>
-void EnsembleKalmanFilter<T>::predict(const double &dt, bool ensure_pos) {
+template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt, bool ensure_pos) {
     sample(ensure_pos);
     sample_predict(dt);
 
@@ -168,9 +157,8 @@ void EnsembleKalmanFilter<T>::predict(const double &dt, bool ensure_pos) {
     Eigen::MatrixXd cov  = Eigen::MatrixXd::Zero(P.rows(), P.cols());
     for (int j = 0; j < ensemble.size(); ++j) {
         // 需要考虑过程预测引起的误差,添加了get_process_error
-        Eigen::VectorXd diff =
-            ensemble[j]->get_status() + generate_process_error() - mean;
-        cov += diff * diff.transpose();
+        Eigen::VectorXd diff  = ensemble[j]->get_status() + generate_process_error() - mean;
+        cov                  += diff * diff.transpose();
     }
     cov     /= ensemble.size() - 1;
     X        = mean;
@@ -179,12 +167,11 @@ void EnsembleKalmanFilter<T>::predict(const double &dt, bool ensure_pos) {
     prior_P  = cov;
 }
 
-template <class T>
-void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
+template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
     Eigen::MatrixXd K;
-    K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
-    X = X + K * (z - H * X);
-    P = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
+    K              = P * H.transpose() * (H * P * H.transpose() + R).inverse();
+    X              = X + K * (z - H * X);
+    P              = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
     // 记录观测值和真实值的差异
     diff_obs_prior = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
     std::stringstream ss;
@@ -199,8 +186,8 @@ void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::init(Eigen::VectorXd X, Eigen::MatrixXd P,
-                                   Eigen::MatrixXd H, Eigen::VectorXd Q) {
+void EnsembleKalmanFilter<T>::init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H, Eigen::VectorXd Q,
+                                   const unsigned int &seed) {
     FilterBase::X  = X;
     FilterBase::P  = P;
     prior_X        = X;
@@ -208,14 +195,12 @@ void EnsembleKalmanFilter<T>::init(Eigen::VectorXd X, Eigen::MatrixXd P,
     diff_obs_prior = Eigen::VectorXd::Zero(X.size());
     this->H        = H;
     this->Q        = Q;
+    this->seed     = seed;
 }
 
-template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() {
-    destruct();
-}
+template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() { destruct(); }
 
-template <class T>
-Eigen::VectorXd EnsembleKalmanFilter<T>::generate_process_error() {
+template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::generate_process_error() {
     Eigen::VectorXd error(FilterBase::X.rows());
     for (int i = 0; i < FilterBase::X.rows(); ++i) {
         std::random_device seed;
@@ -226,13 +211,9 @@ Eigen::VectorXd EnsembleKalmanFilter<T>::generate_process_error() {
     return error;
 }
 
-template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::status() {
-    return FilterBase::X;
-}
+template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::status() { return FilterBase::X; }
 
-template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::covariance() {
-    return FilterBase::P;
-}
+template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::covariance() { return FilterBase::P; }
 
 // 提供抽象类提供作为集合卡尔曼滤波的模板类基类
 class EnsembleModel {
@@ -248,16 +229,12 @@ class EnsembleModel {
     Eigen::MatrixXd get_ensemble_P() const { return Ensemble_P; }
     Eigen::VectorXd get_diff_obs_prior() const { return diff_obs_prior; }
     // 状态不变更新
-    Eigen::VectorXd constant_predict(const Eigen::VectorXd &s,
-                                     const double &dt) {
-        return s;
-    }
+    Eigen::VectorXd constant_predict(const Eigen::VectorXd &s, const double &dt) { return s; }
     /* @brief 假设一阶导数不变的参数更新
      * @param s VectorXd的数据存储方式应该为 [状态， 1阶导数]
      * @param dt 预测时间间隔
      */
-    Eigen::Vector2d const_1derivate_predict(const Eigen::Vector2d &s,
-                                            const double &dt) {
+    Eigen::Vector2d const_1derivate_predict(const Eigen::Vector2d &s, const double &dt) {
         Eigen::Vector2d next;
         next(1) = s(1);
         next(0) = s(0) + s(1) * dt;
@@ -268,8 +245,7 @@ class EnsembleModel {
      * @param s Vector3d的存储格式为 [状态, 一阶导数, 二阶导数]
      * @param dt 预测时间间隔
      */
-    Eigen::Vector3d const_2derivate_predict(const Eigen::Vector3d &s,
-                                            const double &dt) {
+    Eigen::Vector3d const_2derivate_predict(const Eigen::Vector3d &s, const double &dt) {
         Eigen::Vector3d next;
         next(2) = s(2);
         next(1) = s(1) + s(2) * dt;
@@ -280,8 +256,8 @@ class EnsembleModel {
   public:
     Eigen::VectorXd get_status() { return status; }
     // 初始化时与整体的均值和协方差一起存储
-    void update(Eigen::VectorXd &status, Eigen::VectorXd &Ensemble_status,
-                Eigen::MatrixXd &Ensemble_P, Eigen::VectorXd &diff_prior_obs) {
+    void update(Eigen::VectorXd &status, Eigen::VectorXd &Ensemble_status, Eigen::MatrixXd &Ensemble_P,
+                Eigen::VectorXd &diff_prior_obs) {
         this->status          = status;
         this->Ensemble_status = Ensemble_status;
         this->Ensemble_P      = Ensemble_P;
@@ -291,8 +267,7 @@ class EnsembleModel {
     void update(Eigen::VectorXd &status) { this->status = status; }
 
     // 子类必须实现predict的方法
-    virtual Eigen::VectorXd predict(const double &dt,
-                                    const Eigen::VectorXd &status) = 0;
+    virtual Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) = 0;
     void step(const double &dt) {
         Eigen::VectorXd predicted_status = predict(dt, status);
         update(predicted_status);
