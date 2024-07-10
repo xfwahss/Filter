@@ -90,7 +90,7 @@ def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
         'size':1000,
         'status_dims':4,
         'obs_dims':1,
-        'tau': 3,
+        'tau': 5,
     }
     params=pd.DataFrame({'key':params.keys(), 'value':params.values()})
     params.to_excel(writer, sheet_name='Params', index=False, header=False)

@@ -27,8 +27,9 @@ class Nitrification {
     double rate(const double &c_ox, const double &T, const double &c_am);
     // 获取当前的状态给卡尔曼滤波
     nitri_status get_status();
-    // 卡尔曼预测步给定新的状态
+
     void update(const nitri_status &updated_status);
+    void update(const Eigen::VectorXd &status);
 };
 
 #endif

@@ -1,9 +1,10 @@
-#include <EnsembleKalmanFilter.h>
 #include <Denitrification.h>
+#include <EnsembleKalmanFilter.h>
 #include <Nitrification.h>
 #include <Reservoir.h>
 #include <RiverSystem.h>
 #include <umath.h>
+
 
 class Model : public EnsembleModel {
   public:
@@ -22,15 +23,15 @@ class Model : public EnsembleModel {
         rivers_out.add_river("Baihe_Dam", bai_dam);
         rivers_out.add_river("Chaohe_Dam", chao_dam);
         // 粒子状态向量分发
-        double in_flow1     = status(0);
-        double in_flow1_cno = status(5);
-        double in_flow1_cna = status(6);
-        double in_flow1_cnn = status(7);
+        double in_flow1      = status(0);
+        double in_flow1_cno  = status(5);
+        double in_flow1_cna  = status(6);
+        double in_flow1_cnn  = status(7);
 
-        double in_flow2     = status(1);
-        double in_flow2_cno = status(8);
-        double in_flow2_cna = status(9);
-        double in_flow2_cnn = status(10);
+        double in_flow2      = status(1);
+        double in_flow2_cno  = status(8);
+        double in_flow2_cna  = status(9);
+        double in_flow2_cnn  = status(10);
 
         double out_flow1     = status(2);
         double out_flow1_cno = status(11);
@@ -42,50 +43,48 @@ class Model : public EnsembleModel {
         double out_flow2_cna = status(15);
         double out_flow2_cnn = status(16);
 
-        double wl      = status(4);
-        double res_cno = status(17);
-        double res_cna = status(18);
-        double res_cnn = status(19);
-        double res_T   = 0;
-        double res_cdo = 0;
+        double wl            = status(4);
+        double res_cno       = status(17);
+        double res_cna       = status(18);
+        double res_cnn       = status(19);
+        double res_T         = 0;
+        double res_cdo       = 0;
 
-        double deni_rn0   = 0; // 0阶反应速率
-        double deni_knb1  = 0; // 20度时的反硝化速率常数
-        double deni_Tnc   = 0; // 临界温度
-        double deni_theta = 0; // 温度系数
-        double deni_cnoxc = 0; // 临界溶解氧浓度
-        double deni_cnoxo = 0; // 最佳溶解氧浓度
-        double beta       = 1; // 曲率系数
+        double deni_rn0      = 0; // 0阶反应速率
+        double deni_knb1     = 0; // 20度时的反硝化速率常数
+        double deni_Tnc      = 0; // 临界温度
+        double deni_theta    = 0; // 温度系数
+        double deni_cnoxc    = 0; // 临界溶解氧浓度
+        double deni_cnoxo    = 0; // 最佳溶解氧浓度
+        double beta          = 1; // 曲率系数
 
-        double ni_ra0     = 0;
-        double ni_kab1    = 0;
-        double ni_foxmin  = 0;
-        double ni_c_oxc   = 0;
-        double ni_c_oxo   = 0;
-        double ni_theta_a = 0;
-        double ni_T_c     = 0;
-        double alpha      = 0;
+        double ni_ra0        = 0;
+        double ni_kab1       = 0;
+        double ni_foxmin     = 0;
+        double ni_c_oxc      = 0;
+        double ni_c_oxo      = 0;
+        double ni_theta_a    = 0;
+        double ni_T_c        = 0;
+        double alpha         = 0;
 
         // 子模型状态更新
         res_status res_s(wl, res_cno, res_cna, res_cnn, res_T, res_cdo);
         reservoir.update(res_s);
 
         Eigen::VectorXd rivers_in_s(8);
-        rivers_in_s << in_flow1, in_flow1_cno, in_flow1_cna, in_flow1_cnn,
-            in_flow2, in_flow2_cno, in_flow2_cna, in_flow2_cnn;
+        rivers_in_s << in_flow1, in_flow1_cno, in_flow1_cna, in_flow1_cnn, in_flow2, in_flow2_cno, in_flow2_cna,
+            in_flow2_cnn;
         rivers_in.update(rivers_in_s);
 
         Eigen::VectorXd rivers_out_s(8);
-        rivers_out_s << out_flow1, out_flow1_cno, out_flow1_cna, out_flow1_cnn,
-            out_flow2, out_flow2_cno, out_flow2_cna, out_flow2_cnn;
+        rivers_out_s << out_flow1, out_flow1_cno, out_flow1_cna, out_flow1_cnn, out_flow2, out_flow2_cno, out_flow2_cna,
+            out_flow2_cnn;
         rivers_out.update(rivers_out_s);
 
-        deni_status deni_sta(deni_rn0, deni_knb1, deni_Tnc, deni_theta,
-                             deni_cnoxc, deni_cnoxo);
+        deni_status deni_sta(deni_rn0, deni_knb1, deni_Tnc, deni_theta, deni_cnoxc, deni_cnoxo);
         deni_proc.update(deni_sta);
 
-        nitri_status ni_sta(ni_ra0, ni_kab1, ni_foxmin, ni_c_oxc, ni_c_oxo,
-                            ni_theta_a, ni_T_c);
+        nitri_status ni_sta(ni_ra0, ni_kab1, ni_foxmin, ni_c_oxc, ni_c_oxo, ni_theta_a, ni_T_c);
         ni_proc.update(ni_sta);
 
         // 定义更新后的粒子状态,开始状态预测更新dt时间步
@@ -95,10 +94,9 @@ class Model : public EnsembleModel {
         double ro           = 0;
         // double ra           = ni_proc.rate(res_cdo, res_T, res_cna);
         // double rn           = deni_proc.rate(res_cdo, res_T, res_cnn);
-        double ra = 0;
-        double rn = 0;
-        reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2),
-                        in(3), out(3), ro, ra, rn);
+        double ra           = 0;
+        double rn           = 0;
+        reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2), in(3), out(3), ro, ra, rn);
         res_status next_res_status = reservoir.get_status();
         predict_status(0)          = in_flow1;
         predict_status(1)          = in_flow2;
@@ -156,22 +154,20 @@ class ModelIO : public FilterIO {
     Eigen::MatrixXd r_value;      // 读取数据处理R
 
   public:
-    ModelIO(const std::string &filename_in, const std::string &filename_out)
-        : FilterIO(filename_in, filename_out) {
+    ModelIO(const std::string &filename_in, const std::string &filename_out) : FilterIO(filename_in, filename_out) {
         obs_dims = get_params("Params", 1, 2, 1)["obs_dims"];
         z_value  = Eigen::VectorXd::Zero(obs_dims);
         r_value  = Eigen::MatrixXd::Zero(obs_dims, obs_dims);
     }
     ~ModelIO() {}
-    void assign_inf(const Eigen::VectorXd &obs, const int &index,
-                    const int &r_value_index) {
+    void assign_inf(const Eigen::VectorXd &obs, const int &index, const int &r_value_index) {
         if (obs(index) == -999.0) {
             r_value(r_value_index, r_value_index) = 1000000;
         }
     };
     void assign_inf_res(const Eigen::VectorXd &obs) {
-        if (obs(3) == -999 && obs(8) == -999 && obs(13) == -999 &&
-            obs(18) == -999 && obs(23) == -999 && obs(28) == -999) {
+        if (obs(3) == -999 && obs(8) == -999 && obs(13) == -999 && obs(18) == -999 && obs(23) == -999 &&
+            obs(28) == -999) {
             r_value(17, 17) = 1000000;
             r_value(18, 18) = 1000000;
             r_value(19, 19) = 1000000;
@@ -182,14 +178,12 @@ class ModelIO : public FilterIO {
          *计算具有观测值的协方差矩阵,没有观测值填充-999，
          *实际上两个变量的协方差为0，只需要将没有观测值的方差设置为无穷大就行
          */
-        double mea_nums = 6;
-        Eigen::MatrixXd obs_mat =
-            Eigen::MatrixXd::Ones(mea_nums, obs_dims) * (-999);
+        double mea_nums         = 6;
+        Eigen::MatrixXd obs_mat = Eigen::MatrixXd::Ones(mea_nums, obs_dims) * (-999);
         for (int i = 0; i < obs_dims - 3; ++i) {
             if (z_value(i) != 0) {
                 for (int j = 0; j < mea_nums; ++j) {
-                    obs_mat(j, i) =
-                        umath::randomd(z_value(i), r_read_value(i, i));
+                    obs_mat(j, i) = umath::randomd(z_value(i), r_read_value(i, i), 50);
                 }
             }
         }
@@ -266,14 +260,13 @@ class ModelIO : public FilterIO {
         assign_inf_res(res_value);
     };
     // 重写虚函数方法
-    void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R,
-                  const int &index) {
+    void read_one(ExcelIO &file, Eigen::VectorXd &z, Eigen::MatrixXd &R, const int &index) {
         using umath::avg_exclude_nans;
         using umath::fill_missed_value;
 
-        in_value  = file.read_row("Rivers_in", 2 + index, 2);
-        out_value = file.read_row("Rivers_out", 2 + index, 2);
-        res_value = file.read_row("Reservoir", 2 + index, 2);
+        in_value   = file.read_row("Rivers_in", 2 + index, 2);
+        out_value  = file.read_row("Rivers_out", 2 + index, 2);
+        res_value  = file.read_row("Reservoir", 2 + index, 2);
 
         // 水文数据
         z_value(0) = in_value(0);
@@ -283,10 +276,10 @@ class ModelIO : public FilterIO {
         z_value(4) = res_value(0);
 
         // 水质数据
-        double baihe_cno = fill_missed_value((in_value(4))) -
-                           fill_missed_value(in_value(3)) - fill_missed_value(in_value(2));
-        double chaohe_cno = fill_missed_value(in_value(7)) -
-                            fill_missed_value(in_value(6)) - fill_missed_value(in_value(5));
+        double baihe_cno =
+            fill_missed_value((in_value(4))) - fill_missed_value(in_value(3)) - fill_missed_value(in_value(2));
+        double chaohe_cno =
+            fill_missed_value(in_value(7)) - fill_missed_value(in_value(6)) - fill_missed_value(in_value(5));
         z_value(5)  = baihe_cno;
         z_value(6)  = fill_missed_value(in_value(2));
         z_value(7)  = fill_missed_value(in_value(3));
@@ -294,12 +287,10 @@ class ModelIO : public FilterIO {
         z_value(9)  = fill_missed_value(in_value(5));
         z_value(10) = fill_missed_value(in_value(6));
 
-        double baihedam_cno = fill_missed_value(out_value(4)) -
-                              fill_missed_value(out_value(3)) -
-                              fill_missed_value(out_value(2));
-        double chaohedam_cno = fill_missed_value(out_value(7)) -
-                               fill_missed_value(out_value(6)) -
-                               fill_missed_value(out_value(5));
+        double baihedam_cno =
+            fill_missed_value(out_value(4)) - fill_missed_value(out_value(3)) - fill_missed_value(out_value(2));
+        double chaohedam_cno =
+            fill_missed_value(out_value(7)) - fill_missed_value(out_value(6)) - fill_missed_value(out_value(5));
         z_value(11) = baihedam_cno;
         z_value(12) = fill_missed_value(out_value(2));
         z_value(13) = fill_missed_value(out_value(3));
@@ -308,20 +299,20 @@ class ModelIO : public FilterIO {
         z_value(16) = fill_missed_value(out_value(6));
 
         double res_T, res_do, res_cna, res_cnn, res_cno;
-        res_T   = avg_exclude_nans({res_value(1), res_value(6), res_value(11),
-                                res_value(16), res_value(21), res_value(26)});
-        res_do  = avg_exclude_nans({res_value(2), res_value(7), res_value(12),
-                                res_value(17), res_value(22), res_value(27)});
-        res_cna = avg_exclude_nans({res_value(3), res_value(8), res_value(13),
-                                res_value(18), res_value(23), res_value(28)});
-        res_cnn = avg_exclude_nans({res_value(4), res_value(9), res_value(14),
-                                res_value(19), res_value(24), res_value(29)});
-        res_cno = avg_exclude_nans({res_value(5), res_value(10), res_value(15),
-                                res_value(20), res_value(25), res_value(30)}) -
+        res_T =
+            avg_exclude_nans({res_value(1), res_value(6), res_value(11), res_value(16), res_value(21), res_value(26)});
+        res_do =
+            avg_exclude_nans({res_value(2), res_value(7), res_value(12), res_value(17), res_value(22), res_value(27)});
+        res_cna =
+            avg_exclude_nans({res_value(3), res_value(8), res_value(13), res_value(18), res_value(23), res_value(28)});
+        res_cnn =
+            avg_exclude_nans({res_value(4), res_value(9), res_value(14), res_value(19), res_value(24), res_value(29)});
+        res_cno = avg_exclude_nans(
+                      {res_value(5), res_value(10), res_value(15), res_value(20), res_value(25), res_value(30)}) -
                   res_cna - res_cnn;
-        z_value(17) = res_cno;
-        z_value(18) = res_cna;
-        z_value(19) = res_cnn;
+        z_value(17)  = res_cno;
+        z_value(18)  = res_cna;
+        z_value(19)  = res_cnn;
 
         r_read_value = file.read_block("R", 2, 2, obs_dims, obs_dims);
         calc_r();
@@ -342,11 +333,12 @@ void run(const std::string &filename_in, const std::string &filename_out) {
     Eigen::MatrixXd P = modelio.get_init_P("Init_P", 2, 2, status_dims);
     Eigen::MatrixXd H = modelio.get_H("H", 2, 2, obs_dims, status_dims);
     Eigen::VectorXd Q = modelio.get_Q("Q", 2, 1, status_dims);
-    enkal.init(X, P, H, Q, 40);
+    enkal.init(X, P, H, Q, 40, true);
     enkal.batch_assimilation(&modelio, 1);
 }
 
 int main(int argc, char *argv[]) {
+    // logger::get()->set_level(spdlog::level::debug);
     auto options             = umath::get_args(argc, argv);
     std::string filename_in  = "Miyun_Model.xlsx";
     std::string filename_out = "Miyun_Model_out.xlsx";

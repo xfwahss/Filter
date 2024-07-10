@@ -41,5 +41,6 @@ class Denitrification {
     deni_status get_status();
     // 更新当前系统中的反硝化状态
     void update(const deni_status &updated_status);
+    void update(const Eigen::VectorXd &status);
 };
 #endif

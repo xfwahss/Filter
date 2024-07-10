@@ -6,12 +6,13 @@
 #include <spdlog/spdlog.h>
 
 namespace logger {
-std::shared_ptr<spdlog::logger> get(const std::string &logger_name="console", const std::string &filename = std::string());
+std::shared_ptr<spdlog::logger> get(const std::string &logger_name = "console",
+                                    const std::string &filename    = std::string());
 void log_vectorxd(const std::string &msg, const Eigen::VectorXd &vec, const std::string &logger_name = "console",
                   const std::string &filename = std::string());
 
 void log_matrixxd(const std::string &msg, const Eigen::MatrixXd &mat, const std::string &logger_name = "console",
                   const std::string &filename = std::string());
-} // namespace logger
 
+} // namespace logger
 #endif

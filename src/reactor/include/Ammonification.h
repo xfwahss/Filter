@@ -10,6 +10,7 @@ class Ammonification {
     ~Ammonification() = default;
     void init(const double &ro0, const double &ko1);
     void update(const ammon_status &updated_status);
+    void update(const Eigen::VectorXd &status);
     double rate(const double &c_no);
 };
 #endif

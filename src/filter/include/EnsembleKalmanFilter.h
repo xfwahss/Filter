@@ -11,10 +11,10 @@
  */
 #ifndef ENSEMBLE_KALMAN_FILTER_H
 #define ENSEMBLE_KALMAN_FILTER_H
+#include <Eigen/Dense>
+#include <FilterBase.h>
 #include <FilterIO.h>
 #include <umath.h>
-#include <FilterBase.h>
-#include <Eigen/Dense>
 #include <vector>
 
 template <class T> class EnsembleKalmanFilter : public FilterBase {
@@ -22,14 +22,12 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     EnsembleKalmanFilter(const int &ensemble_size);
     ~EnsembleKalmanFilter();
 
-    void init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H, Eigen::VectorXd Q, const unsigned int &seed = 0);
+    void init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H, Eigen::VectorXd Q, const unsigned int &seed = 0,
+              const bool &ensure_pos = false);
 
     // 单步同化
-    void step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R, bool ensure_pos);
+    void step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R);
     // 批量同化
-    /*
-     * @param ensure_pos 是否保证采样的值全为正数
-     */
     void batch_assimilation(FilterIO *filterio, const double &dt, const Eigen::MatrixXd &R = Eigen::MatrixXd(),
                             bool ensure_pos = false);
     Eigen::VectorXd status();
@@ -48,9 +46,11 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     // 存储观测值和先验值的差异,初始化为0
     Eigen::VectorXd diff_obs_prior;
     // 根据给定的方差生成一个状态的预测随机误差
-    Eigen::VectorXd generate_process_error();
+    Eigen::VectorXd predict_error();
     // 随机采样种子
     unsigned int seed;
+    // 保证采样的值是正的
+    bool ensure_pos;
 
     // 构建集合
     void construct(const int &ensemble_size);
@@ -58,12 +58,12 @@ template <class T> class EnsembleKalmanFilter : public FilterBase {
     void destruct();
 
     // 状态采样
-    void sample(bool ensure_pos);
+    void sample();
     // 样本状态预测
     void sample_predict(const double &dt);
 
     // 利用样本预测估计整体
-    void predict(const double &dt, bool ensure_pos);
+    void predict(const double &dt);
     void update(Eigen::VectorXd z, Eigen::MatrixXd R);
 };
 
@@ -73,9 +73,8 @@ template <class T> EnsembleKalmanFilter<T>::EnsembleKalmanFilter(const int &ense
 }
 
 template <class T>
-void EnsembleKalmanFilter<T>::step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
-                                                bool ensure_pos) {
-    predict(dt, ensure_pos);
+void EnsembleKalmanFilter<T>::step_assimilation(const double &dt, const Eigen::VectorXd &z, const Eigen::MatrixXd &R) {
+    predict(dt);
     update(z, R);
 }
 
@@ -88,7 +87,7 @@ void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio, const doubl
     if (R.size() == 0) {
         filterio->read(z, r_file);
         while (z.size() != 0) {
-            this->step_assimilation(dt, z, r_file, ensure_pos);
+            this->step_assimilation(dt, z, r_file);
             filterio->write_x(X, "X", 1, 2);
             filterio->write_x(prior_X, "prior_X", 1, 2);
             filterio->write_P(P, "P", 1, 2);
@@ -97,7 +96,7 @@ void EnsembleKalmanFilter<T>::batch_assimilation(FilterIO *filterio, const doubl
     } else {
         filterio->read(z, r_file);
         while (z.size() != 0) {
-            this->step_assimilation(dt, z, R, ensure_pos);
+            this->step_assimilation(dt, z, R);
             filterio->write_x(X, "X", 1, 2);
             filterio->write_x(prior_X, "prior_X", 1, 2);
             filterio->write_P(P, "P", 1, 2);
@@ -120,7 +119,7 @@ template <class T> void EnsembleKalmanFilter<T>::destruct() {
     ensemble.clear();
 }
 
-template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
+template <class T> void EnsembleKalmanFilter<T>::sample() {
     Eigen::VectorXd (*gauss_random)(Eigen::VectorXd &mean, Eigen::MatrixXd &cov, const unsigned int &seed);
     if (ensure_pos) {
         gauss_random = umath::pos_multi_gauss_random;
@@ -128,8 +127,7 @@ template <class T> void EnsembleKalmanFilter<T>::sample(bool ensure_pos) {
         gauss_random = umath::multivariate_gaussian_random;
     }
     for (int i = 0; i < ensemble.size(); ++i) {
-        Eigen::VectorXd random_num;
-        random_num = gauss_random(X, P, seed);
+        Eigen::VectorXd random_num = gauss_random(X, P, seed);
         ensemble[i]->update(random_num, X, P, diff_obs_prior);
     }
 }
@@ -140,14 +138,14 @@ template <class T> void EnsembleKalmanFilter<T>::sample_predict(const double &dt
     }
 }
 
-template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt, bool ensure_pos) {
-    sample(ensure_pos);
+template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
+    sample();
     sample_predict(dt);
 
     // 计算均值向量
     Eigen::VectorXd mean = Eigen::VectorXd::Zero(X.rows());
     for (int i = 0; i < ensemble.size(); ++i) {
-        mean += ensemble[i]->get_status();
+        mean += ensemble[i]->get_status() + predict_error();
     }
     mean                /= ensemble.size();
 
@@ -155,7 +153,7 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt, bool 
     Eigen::MatrixXd cov  = Eigen::MatrixXd::Zero(P.rows(), P.cols());
     for (int j = 0; j < ensemble.size(); ++j) {
         // 需要考虑过程预测引起的误差,添加了get_process_error
-        Eigen::VectorXd diff  = ensemble[j]->get_status() + generate_process_error() - mean;
+        Eigen::VectorXd diff  = ensemble[j]->get_status() + predict_error() - mean;
         cov                  += diff * diff.transpose();
     }
     cov     /= ensemble.size() - 1;
@@ -172,37 +170,31 @@ template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen
     P              = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
     // 记录观测值和真实值的差异
     diff_obs_prior = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
-    std::stringstream ss;
-    for (int i = 0; i < diff_obs_prior.size(); ++i) {
-        if (i == diff_obs_prior.size() - 1) {
-            ss << diff_obs_prior(i);
-        } else {
-            ss << diff_obs_prior(i) << ",";
-        }
-    }
-    logger::get()->debug("Relative Error: {}", ss.str());
+    logger::log_vectorxd("Relative Error",  diff_obs_prior);
 }
 
 template <class T>
 void EnsembleKalmanFilter<T>::init(Eigen::VectorXd X, Eigen::MatrixXd P, Eigen::MatrixXd H, Eigen::VectorXd Q,
-                                   const unsigned int &seed) {
-    FilterBase::X  = X;
-    FilterBase::P  = P;
-    prior_X        = X;
-    prior_P        = P;
-    diff_obs_prior = Eigen::VectorXd::Zero(X.size());
-    this->H        = H;
-    this->Q        = Q;
-    this->seed     = seed;
+                                   const unsigned int &seed, const bool &ensure_pos) {
+    FilterBase::X    = X;
+    FilterBase::P    = P;
+    prior_X          = X;
+    prior_P          = P;
+    diff_obs_prior   = Eigen::VectorXd::Zero(X.size());
+    this->H          = H;
+    this->Q          = Q;
+    this->seed       = seed;
+    this->ensure_pos = ensure_pos;
 }
 
 template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() { destruct(); }
 
-template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::generate_process_error() {
+template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::predict_error() {
     Eigen::VectorXd error(FilterBase::X.rows());
     for (int i = 0; i < FilterBase::X.rows(); ++i) {
-        error(i) = umath::randomd(0, Q(i));
+        error(i) = umath::randomd(0.0, Q(i), seed);
     }
+    logger::log_vectorxd("sample Q:{}", error);
     return error;
 }
 
@@ -213,10 +205,13 @@ template <class T> Eigen::MatrixXd EnsembleKalmanFilter<T>::covariance() { retur
 // 提供抽象类提供作为集合卡尔曼滤波的模板类基类
 class EnsembleModel {
   private:
-    Eigen::VectorXd status;
+    // 抽样总体状态
     Eigen::VectorXd Ensemble_status;
     Eigen::MatrixXd Ensemble_P;
     Eigen::VectorXd diff_obs_prior;
+
+    // 个体状态
+    Eigen::VectorXd status;
 
   protected:
     Eigen::VectorXd get_status() const { return status; }

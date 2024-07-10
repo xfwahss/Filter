@@ -9,6 +9,12 @@ void Ammonification::update(const ammon_status &updated_status) {
     status = updated_status;
 }
 
+void Ammonification::update(const Eigen::VectorXd &status){
+    ammon_status s;
+    s = status;
+    update(s);
+}
+
 double Ammonification::rate(const double &c_no) {
     return status.ro0 + status.ko1 * c_no;
 }

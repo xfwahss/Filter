@@ -76,6 +76,6 @@ int main() {
     ss.str("");
     ss << Q.transpose();
     spdlog::info("Q: {}", ss.str());
-    enkal.init(X, P, H, Q);
+    enkal.init(X, P, H, Q, 30);
     enkal.batch_assimilation(&modelio, dt);
 }

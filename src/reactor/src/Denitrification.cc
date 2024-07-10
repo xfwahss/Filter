@@ -18,6 +18,12 @@ void Denitrification::update(const deni_status &updated_status) {
     coeffecients = updated_status;
 }
 
+void Denitrification::update(const Eigen::VectorXd &status){
+    deni_status s;
+    s = status;
+    update(s);
+}
+
 double Denitrification::fnox(const double &c_ox) {
     if (c_ox <= coeffecients.c_noxo) {
         return 1.0;

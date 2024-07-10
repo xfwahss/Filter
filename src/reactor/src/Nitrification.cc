@@ -56,3 +56,9 @@ void Nitrification::update(const nitri_status &update_status) {
     status.theta_a = update_status.theta_a;
     status.T_c     = update_status.T_c;
 }
+
+void Nitrification::update(const Eigen::VectorXd& status){
+    nitri_status s;
+    s = status;
+    update(s);
+}

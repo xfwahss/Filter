@@ -56,6 +56,7 @@ struct test_status : public status_base {
 
 // 存储水库状态
 struct res_status {
+    static const int size = 6;
     double wl;
     double c_no;
     double c_na;
@@ -63,6 +64,19 @@ struct res_status {
     double T;
     double c_do;
     res_status() = default;
+    res_status(const Eigen::VectorXd &vec){
+        if (vec.size() == size) {
+            wl   = vec(0);
+            c_no = vec(1);
+            c_na = vec(2);
+            c_nn = vec(3);
+            T    = vec(4);
+            c_do = vec(5);
+        } else {
+            throw std::length_error(
+                "Length of VectorXd does not match struct:res_status");
+        }
+    }
 
     /* @brief 水库状态初始化
      * @param wl 水库水位
@@ -97,6 +111,7 @@ struct res_status {
 };
 
 struct river_status {
+    static const int size = 4;
     double flow;
     double c_no;
     double c_na;
@@ -141,12 +156,13 @@ struct river_status {
 };
 
 struct ammon_status {
+    static const int size = 2;
     double ro0;
     double ko1;
     ammon_status() = default;
     ammon_status(const double &ro0, const double &ko1) : ro0(ro0), ko1(ko1){};
     ammon_status &operator=(const Eigen::VectorXd &v) {
-        if (v.size() == 2) {
+        if (v.size() == size) {
             ro0 = v(0);
             ko1 = v(1);
             return *this;
@@ -158,6 +174,7 @@ struct ammon_status {
 };
 
 struct nitri_status {
+    static const int size = 7;
     double ra0;
     double kab1;
     double foxmin;
@@ -181,7 +198,7 @@ struct nitri_status {
         : ra0(ra0), kab1(kab1), foxmin(foxmin), c_oxc(c_oxc), c_oxo(c_oxo),
           theta_a(theta_a), T_c(T_c){};
     nitri_status &operator=(const Eigen::VectorXd &v) {
-        if (v.size() == 7) {
+        if (v.size() == size) {
             ra0     = v(0);
             kab1    = v(1);
             foxmin  = v(2);
@@ -203,6 +220,7 @@ struct nitri_status {
 };
 
 struct deni_status {
+    static const int size = 6;
     double rn0;
     double knb1;
     double Tnc;
