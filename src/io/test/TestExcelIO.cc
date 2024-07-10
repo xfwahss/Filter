@@ -1,4 +1,4 @@
-#include "../include/ExcelIO.h"
+#include <ExcelIO.h>
 
 int main() { 
     ExcelIO exce("../test/output/TestExcelWrite.xlsx", "w"); 

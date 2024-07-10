@@ -66,5 +66,4 @@ if __name__ == '__main__':
     visualize_var(ax2, filein_path, fileout_path, "Res_Cnn", '水库硝氮(mg/L)')
     visualize_var(ax3, filein_path, fileout_path, "Res_Cna", '水库氨氮(mg/L)')
     visualize_var(ax4, filein_path, fileout_path, "Res_Cno", '水库有机氮(mg/L)')
-    fig.savefig('水库同化结果.png', dpi=700)
     fig.show()

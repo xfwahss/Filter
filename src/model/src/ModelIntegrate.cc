@@ -1,9 +1,9 @@
-#include "../../filter/include/EnsembleKalmanFilter.h"
-#include "../../reactor/include/Denitrification.h"
-#include "../../reactor/include/Nitrification.h"
-#include "../../reactor/include/Reservoir.h"
-#include "../../reactor/include/RiverSystem.h"
-#include "../../utils/include/umath.h"
+#include <EnsembleKalmanFilter.h>
+#include <Denitrification.h>
+#include <Nitrification.h>
+#include <Reservoir.h>
+#include <RiverSystem.h>
+#include <umath.h>
 
 class Model : public EnsembleModel {
   public:
@@ -342,7 +342,7 @@ void run(const std::string &filename_in, const std::string &filename_out) {
     Eigen::MatrixXd P = modelio.get_init_P("Init_P", 2, 2, status_dims);
     Eigen::MatrixXd H = modelio.get_H("H", 2, 2, obs_dims, status_dims);
     Eigen::VectorXd Q = modelio.get_Q("Q", 2, 1, status_dims);
-    enkal.init(X, P, H, Q);
+    enkal.init(X, P, H, Q, 40);
     enkal.batch_assimilation(&modelio, 1);
 }
 

@@ -1,8 +1,7 @@
-#include "../../filter/include/EnsembleKalmanFilter.h"
-#include "config.h"
+#include <EnsembleKalmanFilter.h>
+#include <config.h>
 #include <string>
 
-// auto console = spdlog::stdout_color_mt("status");
 
 // 负责粒子更新步, 将状态向量分配给机理模型
 class Model : public EnsembleModel {

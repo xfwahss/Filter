@@ -1,4 +1,4 @@
-#include "../include/RiverSystem.h"
+#include <RiverSystem.h>
 
 RiverSystem::RiverSystem() {}
 RiverSystem::~RiverSystem() {}

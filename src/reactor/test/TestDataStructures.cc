@@ -1,4 +1,4 @@
-#include "../include/DataStructures.h"
+#include <DataStructures.h>
 
 int main() {
     test_status b;

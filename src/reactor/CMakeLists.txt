@@ -1,14 +1,22 @@
-include_directories(./include)
-aux_source_directory(./src DIR_LIB_SRCS)
-add_library(reactor SHARED ${DIR_LIB_SRCS})
+project(reactor)
+message("Enter ${PROJECT_SOURCE_DIR}")
 
+# 添加动态链接库
+aux_source_directory(src LIBSRC)
+add_library(${PROJECT_NAME} SHARED ${LIBSRC})
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-add_executable(TestDenitrification ./test/TestDenitrification.cc)
-add_executable(TestNitrification ./test/testNitrification.cc)
-add_executable(TestRiverSystem ./test/TestRiverSystem.cc)
-target_link_libraries(TestDenitrification reactor io)
-target_link_libraries(TestNitrification reactor io)
-target_link_libraries(TestRiverSystem reactor io)
-
-add_executable(TestDataStructure ./test/TestDataStructures.cc)
-target_link_libraries(TestDataStructure reactor io)
+# 添加测试
+if(${BUILD_TEST})
+aux_source_directory(test TESTSRC)
+foreach(test_file ${TESTSRC})
+    get_filename_component(test_exe_name ${test_file} NAME_WE)
+    add_executable(${test_exe_name} ${test_file})
+    target_include_directories(${test_exe_name} PRIVATE include)
+    target_link_libraries(${test_exe_name} PRIVATE ${PROJECT_NAME})
+    add_test(NAME ${test_exe_name}
+             COMMAND ${test_exe_name}
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endforeach()
+endif()
+message("Leave ${PROJECT_SOURCE_DIR}")

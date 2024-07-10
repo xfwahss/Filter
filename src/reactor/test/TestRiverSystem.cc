@@ -1,4 +1,4 @@
-#include "../include/RiverSystem.h"
+#include <RiverSystem.h>
 
 int main(){
     River a;

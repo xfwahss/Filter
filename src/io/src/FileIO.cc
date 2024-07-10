@@ -1,4 +1,4 @@
-#include "../include/FileIO.h"
+#include <FileIO.h>
 #include <filesystem>
 
 FileIO::FileIO(const std::string &filename, const std::string &mode) : filename(filename) {

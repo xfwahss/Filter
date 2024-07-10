@@ -1,5 +1,5 @@
-#include "EnsembleKalmanFilter.h"
-#include "config.h"
+#include <EnsembleKalmanFilter.h>
+#include <config.h>
 
 // 负责粒子更新步, 将状态向量分配给机理模型
 class Model : public EnsembleModel {

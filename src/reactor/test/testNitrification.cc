@@ -1,4 +1,4 @@
-#include "../include/Nitrification.h"
+#include <Nitrification.h>
 #include <iostream>
 
 int main(){

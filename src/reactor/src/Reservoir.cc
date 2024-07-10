@@ -1,4 +1,4 @@
-#include "../include/Reservoir.h"
+#include <Reservoir.h>
 
 Reservoir::Reservoir(){};
 Reservoir::~Reservoir(){};

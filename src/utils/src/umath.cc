@@ -20,6 +20,7 @@ double umath::randomd(const double &mean, const double &variance, const unsigned
         // 如果seed为0，则使用随机设备生成种子
         unsigned int actual_seed = (seed == 0) ? std::random_device()() : seed;
         engine                   = new std::mt19937_64(actual_seed);
+        logger::get()->info("Init random engine with seed {}.", actual_seed);
     }
 
     std::normal_distribution<double> dist(mean, stddev);

@@ -1,4 +1,4 @@
-#include "../include/Denitrification.h"
+#include <Denitrification.h>
 #include<iostream>
 
 int main(){

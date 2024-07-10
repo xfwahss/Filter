@@ -1,4 +1,4 @@
-#include "../include/Ammonification.h"
+#include <Ammonification.h>
 
 void Ammonification::init(const double &ro0, const double &ko1) {
     status.ro0 = ro0;

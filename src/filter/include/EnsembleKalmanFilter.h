@@ -11,12 +11,10 @@
  */
 #ifndef ENSEMBLE_KALMAN_FILTER_H
 #define ENSEMBLE_KALMAN_FILTER_H
-#include "../../io/include/FilterIO.h"
-#include "../../utils/include/umath.h"
-#include "FilterBase.h"
+#include <FilterIO.h>
+#include <umath.h>
+#include <FilterBase.h>
 #include <Eigen/Dense>
-#include <random>
-#include <spdlog/spdlog.h>
 #include <vector>
 
 template <class T> class EnsembleKalmanFilter : public FilterBase {
@@ -182,7 +180,7 @@ template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen
             ss << diff_obs_prior(i) << ",";
         }
     }
-    spdlog::debug("Relative Error: {}", ss.str());
+    logger::get()->debug("Relative Error: {}", ss.str());
 }
 
 template <class T>
@@ -203,10 +201,7 @@ template <class T> EnsembleKalmanFilter<T>::~EnsembleKalmanFilter() { destruct()
 template <class T> Eigen::VectorXd EnsembleKalmanFilter<T>::generate_process_error() {
     Eigen::VectorXd error(FilterBase::X.rows());
     for (int i = 0; i < FilterBase::X.rows(); ++i) {
-        std::random_device seed;
-        std::mt19937_64 engine(seed());
-        std::normal_distribution<double> dist(0.0, Q(i));
-        error(i) = dist(engine);
+        error(i) = umath::randomd(0, Q(i));
     }
     return error;
 }
