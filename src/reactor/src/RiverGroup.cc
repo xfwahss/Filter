@@ -20,7 +20,7 @@ void RiverGroup::update(Eigen::VectorXd rivers_status) {
     std::map<int, River *>::const_iterator iter = rivers.begin();
     int index                                           = 0;
     while (iter != rivers.end()) {
-        Eigen::VectorXd single_s = status.segment(index * River::status_init_dims, River::status_init_dims);
+        Eigen::VectorXd single_s = rivers_status.segment(index * river_status::size, river_status::size);
         iter->second->update(single_s);
         ++iter;
         ++index;
