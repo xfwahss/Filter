@@ -1,13 +1,23 @@
-cmake_minimum_required(VERSION 3.15)
 project(utils)
-message(STATUS "Entring project ${PROJECT_NAME}")
-set(CMAKE_CXX_STANDARD 17)
+message(STATUS "Enter ${PROJECT_SOURCE_DIR}")
 
 # 封装utils为动态库
-aux_source_directory(src DIR_SRC)
-add_library(${PROJECT_NAME} SHARED ${DIR_SRC})
+aux_source_directory(${PROJECT_SOURCE_DIR}/src LIBSRC)
+add_library(${PROJECT_NAME} SHARED ${LIBSRC})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 
-add_executable(TestUmath test/test_umath.cc)
-target_link_libraries(TestUmath ${PROJECT_NAME})
+# 测试文件
+if(${BUILD_TEST})
+aux_source_directory(test TEST_SRC)
+foreach(src_file ${TEST_SRC})
+    get_filename_component(test_exe_name ${src_file} NAME_WE)
+    add_executable(${test_exe_name} ${src_file})
+    target_include_directories(${test_exe_name} PRIVATE include)
+    target_link_libraries(${test_exe_name} PRIVATE ${PROJECT_NAME})
+    add_test(NAME ${test_exe_name}
+             COMMAND ${test_exe_name}
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endforeach(src_file ${TEST_SRC})
+endif()
+message(STATUS "Leave ${PROJECT_SOURCE_DIR}")

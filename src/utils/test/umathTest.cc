@@ -1,8 +1,15 @@
-#include "../include/umath.h"
+#include <umath.h>
 #include <iostream>
 #include <vector>
+#include <random>
 
 int main() {
+
+    std::random_device rd;
+    std::cout << rd() << std::endl;
+    for(int i=0; i<20; ++i){
+        std::cout << umath::randomd(0, 1, 40)<<std::endl;
+    }
     Eigen::VectorXd a(3);
     a << 1.0, 2, 3;
     Eigen::VectorXd b(4);
