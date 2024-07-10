@@ -1,6 +1,7 @@
 #ifndef U_MATH_H
 #define U_MATH_H
 #include <Eigen/Dense>
+#include <logger.h>
 
 // user_math
 namespace umath {

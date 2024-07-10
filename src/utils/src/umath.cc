@@ -55,10 +55,19 @@ Eigen::VectorXd umath::multivariate_gaussian_random(Eigen::VectorXd &mean, Eigen
 
 Eigen::VectorXd umath::pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::MatrixXd &covariance,
                                               const unsigned int &seed) {
+    int count = 0;
     Eigen::VectorXd random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
-    while (!is_positive(random_vector)) {
+    logger::get("console")->enable_backtrace(5);
+    while ((!is_positive(random_vector)) && count < 100) {
         random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
+        logger::log_vectorxd("random vector:{}", random_vector);
+        count++;
     }
+    if(count==100){
+        logger::get()->warn("Negative random vector was generated!");
+        logger::get()->dump_backtrace();
+    }
+
     return random_vector;
 }
 
