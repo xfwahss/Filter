@@ -78,7 +78,7 @@ def run_model(exe, toggle=True):
     os.chdir(cwd)
 
 
-value_nums = 200
+value_nums = 1000
 set_dt = 10 / value_nums
 def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
     writer = pd.ExcelWriter(path)
@@ -90,7 +90,7 @@ def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
         'size':1000,
         'status_dims':4,
         'obs_dims':1,
-        'tau': 5,
+        'tau': 10,
     }
     params=pd.DataFrame({'key':params.keys(), 'value':params.values()})
     params.to_excel(writer, sheet_name='Params', index=False, header=False)
@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     ############### 数据同化部分
     write_input(Obs=c_obs, R=0.1)
-    run_model("bin/1stOrderReactionParameterTracker.exe", toggle=True)
+    run_model("bin/1stOrderReactionParameterTracker", toggle=True)
     c_filter, k_filter, dk, prior_c, ddk = read_status()
     c_variance, k_variance = read_variance()
 

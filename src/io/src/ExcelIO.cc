@@ -1,9 +1,6 @@
 #include <ExcelIO.h>
-#include <iostream>
-#include <sstream>
 
-ExcelIO::ExcelIO(const std::string &filename, const std::string &mode)
-    : FileIO(filename, mode), mode(mode) {
+ExcelIO::ExcelIO(const std::string &filename, const std::string &mode) : FileIO(filename, mode), mode(mode) {
     std::string extension = FileIO::get_file_type();
     if (extension != "xlsx") {
         throw std::invalid_argument("Wrong type of the filename");
@@ -26,10 +23,36 @@ ExcelIO::~ExcelIO() {
     }
 }
 
-bool ExcelIO::is_string_invector(const std::string &str,
-                                 const std::vector<std::string> &vec) {
-    std::vector<std::string>::const_iterator it =
-        std::find(vec.begin(), vec.end(), str);
+DataVariant ExcelIO::read_cell(const std::string &sheet_name, const int &row,
+                                                                       const int &column) const {
+    auto ws                     = file.workbook().worksheet(sheet_name);
+    OpenXLSX::XLCellValue value = ws.cell(row, column).value();
+    DataVariant v;
+    switch (value.type()) {
+    case OpenXLSX::XLValueType::Empty:
+        v = std::string("null");
+        break;
+    case OpenXLSX::XLValueType::Boolean:
+        v = value.get<bool>();
+        break;
+    case OpenXLSX::XLValueType::Integer:
+        v = value.get<int>();
+        break;
+    case OpenXLSX::XLValueType::Float:
+        v = value.get<float>();
+        break;
+    case OpenXLSX::XLValueType::Error:
+        v = std::string("error");
+        break;
+    case OpenXLSX::XLValueType::String:
+        v = value.get<std::string>();
+        break;
+    }
+    return v;
+}
+
+bool ExcelIO::is_string_invector(const std::string &str, const std::vector<std::string> &vec) {
+    std::vector<std::string>::const_iterator it = std::find(vec.begin(), vec.end(), str);
     return it != vec.end();
 }
 
@@ -45,8 +68,7 @@ int ExcelIO::get_columns(const std::string &sheet_name) {
     return columns;
 }
 
-double ExcelIO::get_cell_value(const std::string &sheet_name, const int &row,
-                               const int &column) {
+double ExcelIO::get_cell_value(const std::string &sheet_name, const int &row, const int &column) {
     // int max_rows    = get_rows(sheet_name);
     // int max_columns = get_columns(sheet_name);
     // if (row > max_rows) {
@@ -66,14 +88,13 @@ double ExcelIO::get_cell_value(const std::string &sheet_name, const int &row,
         return double(v);
     } else {
         std::stringstream ss;
-        ss << "Expected int or float, but received:" << value_type
-           << " ,at row:" << row << ", column:" << column << std::endl;
+        ss << "Expected int or float, but received:" << value_type << " ,at row:" << row << ", column:" << column
+           << std::endl;
         throw std::invalid_argument(ss.str());
     }
 }
 
-Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row,
-                                  const int &start_column,
+Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row, const int &start_column,
                                   const int &end_columns) {
     int nums = (end_columns == -1) ? get_columns(sheet_name) : end_columns;
     Eigen::VectorXd value(nums - start_column + 1);
@@ -83,8 +104,7 @@ Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row,
     return value;
 }
 
-Eigen::VectorXd ExcelIO::read_column(const std::string &sheet_name,
-                                     const int &column, const int &start_row,
+Eigen::VectorXd ExcelIO::read_column(const std::string &sheet_name, const int &column, const int &start_row,
                                      const int &element_nums) {
     int nums = element_nums == 0 ? get_rows(sheet_name) : element_nums;
     Eigen::VectorXd value(nums);
@@ -94,33 +114,26 @@ Eigen::VectorXd ExcelIO::read_column(const std::string &sheet_name,
     return value;
 }
 
-Eigen::MatrixXd ExcelIO::read_block(const std::string &sheet_name,
-                                    const int &start_row,
-                                    const int &start_column, const int &rows,
-                                    const int &columns) {
+Eigen::MatrixXd ExcelIO::read_block(const std::string &sheet_name, const int &start_row, const int &start_column,
+                                    const int &rows, const int &columns) {
     Eigen::MatrixXd value(rows, columns);
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
-            value(i, j) =
-                get_cell_value(sheet_name, i + start_row, j + start_column);
+            value(i, j) = get_cell_value(sheet_name, i + start_row, j + start_column);
         }
     }
     return value;
 }
 
-std::string ExcelIO::read_cell_string(const std::string &sheet_name,
-                                      const int &row, const int &column) {
+std::string ExcelIO::read_cell_string(const std::string &sheet_name, const int &row, const int &column) {
     auto wks      = file.workbook().worksheet(sheet_name);
     std::string s = wks.cell(row, column).value();
     return s;
 }
 
-void ExcelIO::remove_sheet(const std::string &sheet_name) {
-    file.workbook().deleteSheet(sheet_name);
-}
+void ExcelIO::remove_sheet(const std::string &sheet_name) { file.workbook().deleteSheet(sheet_name); }
 
-void ExcelIO::write_row(const Eigen::VectorXd &value,
-                        const std::string &sheet_name, const int &row,
+void ExcelIO::write_row(const Eigen::VectorXd &value, const std::string &sheet_name, const int &row,
                         const int &start_column) {
     if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
         file.workbook().addWorksheet(sheet_name);
@@ -132,8 +145,7 @@ void ExcelIO::write_row(const Eigen::VectorXd &value,
     }
 }
 
-void ExcelIO::write_header(const std::vector<std::string> &value,
-                           const std::string &sheet_name, const int &row) {
+void ExcelIO::write_header(const std::vector<std::string> &value, const std::string &sheet_name, const int &row) {
     if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
         file.workbook().addWorksheet(sheet_name);
     }
@@ -144,8 +156,7 @@ void ExcelIO::write_header(const std::vector<std::string> &value,
     }
 }
 
-void ExcelIO::write_column(const Eigen::VectorXd &value,
-                           const std::string &sheet_name, const int &column) {
+void ExcelIO::write_column(const Eigen::VectorXd &value, const std::string &sheet_name, const int &column) {
     if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
         file.workbook().addWorksheet(sheet_name);
     }
@@ -156,8 +167,7 @@ void ExcelIO::write_column(const Eigen::VectorXd &value,
     }
 }
 
-void ExcelIO::write_cell_string(const std::string &value,
-                                const std::string &sheet_name, const int &row,
+void ExcelIO::write_cell_string(const std::string &value, const std::string &sheet_name, const int &row,
                                 const int &column) {
     if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
         file.workbook().addWorksheet(sheet_name);
@@ -166,23 +176,17 @@ void ExcelIO::write_cell_string(const std::string &value,
     wks.cell(row, column).value() = value;
 }
 
-std::unordered_map<std::string, double>
-ExcelIO::read_dict(const std::string &sheet_name, const int &index_column,
-                   const int &value_column, const int &start_row) {
+std::unordered_map<std::string, double> ExcelIO::read_dict(const std::string &sheet_name, const int &index_column,
+                                                           const int &value_column, const int &start_row) {
     std::unordered_map<std::string, double> dicts;
-    if (read_cell_string(sheet_name, start_row, index_column) !=
-        "element_nums") {
-        throw std::invalid_argument(
-            "Please set the number of parameters to be "
-            "read as the first parameter, format as 'param_nums 1'");
+    if (read_cell_string(sheet_name, start_row, index_column) != "element_nums") {
+        throw std::invalid_argument("Please set the number of parameters to be "
+                                    "read as the first parameter, format as 'param_nums 1'");
     } else {
-        int element_nums =
-            read_column(sheet_name, value_column, start_row, 1)(0);
+        int element_nums = read_column(sheet_name, value_column, start_row, 1)(0);
         for (int i = 1; i < element_nums + 1; ++i) {
-            std::string index =
-                read_cell_string(sheet_name, i + start_row, index_column);
-            dicts[index] =
-                read_column(sheet_name, value_column, start_row + i, 1)(0);
+            std::string index = read_cell_string(sheet_name, i + start_row, index_column);
+            dicts[index]      = read_column(sheet_name, value_column, start_row + i, 1)(0);
         }
     }
     return dicts;

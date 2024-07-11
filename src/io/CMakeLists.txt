@@ -9,13 +9,19 @@ set(LOGGERDIR ${CMAKE_SOURCE_DIR}/src/logger/include)
 aux_source_directory(src LIBSRC)
 add_library(${PROJECT_NAME} SHARED ${LIBSRC})
 target_include_directories(${PROJECT_NAME} PUBLIC include ${XLSXDIR} ${LOGGERDIR} ${CMAKE_BINARY_DIR}/openxlsx)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenXLSX::OpenXLSX logger)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenXLSX::OpenXLSX logger)
 
 # 测试文件
-add_executable(TestOpenXlsx test/TestOpenXlsx.cc)
-target_link_libraries(TestOpenXlsx OpenXLSX::OpenXLSX)
-
-add_executable(TestExcelIO test/TestExcelIO.cc)
-target_link_libraries(TestExcelIO io)
-target_include_directories(TestExcelIO PRIVATE include)
+if(${BUILD_TEST})
+aux_source_directory(test TEST_SRC)
+foreach(src_file ${TEST_SRC})
+    get_filename_component(test_exe_name ${src_file} NAME_WE)
+    add_executable(${test_exe_name} ${src_file})
+    target_include_directories(${test_exe_name} PRIVATE include)
+    target_link_libraries(${test_exe_name} PRIVATE ${PROJECT_NAME})
+    add_test(NAME ${test_exe_name}
+             COMMAND ${test_exe_name}
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endforeach(src_file ${TEST_SRC})
+endif()
 message("Leave ${PROJECT_SOURCE_DIR}")
