@@ -45,6 +45,7 @@ if __name__ == "__main__":
     utils.compile(False)
 
     obs_error, da_error, a_proc_error, v_proc_error, x_proc_error = 1, 0.01, 0.01, 0.01, 0.01
+    np.random.seed(20)
 
     # 数据生成
     a = 0.2
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     ax.plot(t, y_ana, label='同化值', color='g', lw=0.75)
     v_ax.plot(t, v_ana, label='同化值', color='b', lw=0.75)
     # v_ax.plot(t, df_ana['a'].values, label='a')
-    v_ax.plot(t[0:-1], calc_v, label='$Q=dV/dt$', color='r', lw=0.75, alpha=0.5)
+    # v_ax.plot(t[0:-1], calc_v, label='$Q=dV/dt$', color='r', lw=0.75, alpha=0.5)
     err_ax.plot(t, error_ana, lw=0.75, color='k')
     v_err_ax.plot(t, v_error_ana, lw=0.75, color='k')
     # v_err_ax.plot(t, df_P['a'].values)
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     err_ax.set_xlabel('时间(s)')
     ax.set_ylabel('水量$(m^3)$')
 
-    v_ax.set_ylim(-40, 60)
+    # v_ax.set_ylim(-40, 60)
     v_ax.set_xlim(-5, 45)
     v_ax.set_xticks([])
     v_ax.set_ylabel('流量差$(m^3/s)$')
@@ -167,5 +168,5 @@ if __name__ == "__main__":
 
 
 
-    fig.savefig("../../doc/线性模型参数同化_1d.jpg", dpi=1000)
+    # fig.savefig("../../doc/线性模型参数同化_1d.jpg", dpi=1000)
     fig.show()

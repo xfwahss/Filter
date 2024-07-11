@@ -164,13 +164,12 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
 }
 
 template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
-    Eigen::MatrixXd K;
-    K              = P * H.transpose() * (H * P * H.transpose() + R).inverse();
-    X              = X + K * (z - H * X);
-    P              = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
+    Eigen::MatrixXd K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
+    X                 = X + K * (z - H * X);
+    P                 = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
     // 记录观测值和真实值的差异
-    diff_obs_prior = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
-    logger::log_vectorxd("Relative Error",  diff_obs_prior);
+    diff_obs_prior    = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
+    logger::log_vectorxd("Relative Error", diff_obs_prior);
 }
 
 template <class T>

@@ -1,7 +1,6 @@
 #include <random>
 #include <umath.h>
 
-
 bool umath::is_positive(const Eigen::VectorXd &value) {
     int nums = value.size();
     for (int i = 0; i < nums; ++i) {
@@ -12,23 +11,21 @@ bool umath::is_positive(const Eigen::VectorXd &value) {
     return true;
 }
 
-double umath::randomd(const double &mean, const double &variance, const unsigned int &seed) {
-    static std::mt19937_64 *engine = nullptr;
-    double stddev                  = std::sqrt(variance);
-    // 如果随机数生成器尚未初始化，则进行初始化
-    if (engine == nullptr) {
-        // 如果seed为0，则使用随机设备生成种子
-        unsigned int actual_seed = (seed == 0) ? std::random_device()() : seed;
-        engine                   = new std::mt19937_64(actual_seed);
-        logger::get()->info("Init random engine with seed {}.", actual_seed);
-    }
+double umath::std_normal(const unsigned int &seed) {
+    static std::mt19937_64 engine(seed == 0 ? std::random_device()() : seed);  
+    static std::normal_distribution<double> dist(0, 1);  
+    static bool initialized = false;  
+    if (!initialized) {  
+        logger::get("umath")->info("Init random engine with seed {}", seed);
+        initialized = true;
+    } 
+    double value = dist(engine);
+    return value;
+}
 
-    std::normal_distribution<double> dist(mean, stddev);
-    // 使用随机数生成器和分布生成随机数
-    double value = dist(*engine);
-    // 注意：这里没有删除engine，因为它们在函数的生命周期内是持久的
-    // 如果需要在程序结束时清理这些资源，需要在其他地方管理它们（例如，使用智能指针或析构函数）
-    // 但请注意，这通常不是必需的，因为当程序结束时，所有静态局部变量的内存都将被自动释放
+double umath::randomd(const double &mean, const double &variance, const unsigned int &seed) {
+    double stddev                  = std::sqrt(variance);
+    double value = umath::std_normal(seed) * stddev + mean;
     return value;
 }
 
@@ -48,7 +45,7 @@ Eigen::VectorXd umath::multivariate_gaussian_random(Eigen::VectorXd &mean, Eigen
 
     Eigen::VectorXd z(mean.size());
     for (int i = 0; i < mean.size(); ++i) {
-        z(i) = umath::randomd(0, 1, seed);
+        z(i) = umath::std_normal(seed);
     }
     Eigen::VectorXd random_number = mean + L * z;
     return random_number;
@@ -56,7 +53,7 @@ Eigen::VectorXd umath::multivariate_gaussian_random(Eigen::VectorXd &mean, Eigen
 
 Eigen::VectorXd umath::pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::MatrixXd &covariance,
                                               const unsigned int &seed) {
-    int count = 0;
+    int count                     = 0;
     Eigen::VectorXd random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
     logger::get("console")->enable_backtrace(5);
     while ((!is_positive(random_vector)) && count < 100) {
@@ -64,7 +61,7 @@ Eigen::VectorXd umath::pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::Matr
         logger::log_vectorxd("random vector:{}", random_vector);
         count++;
     }
-    if(count==100){
+    if (count == 100) {
         logger::get()->warn("Negative random vector was generated!");
         logger::get()->dump_backtrace();
     }

@@ -8,6 +8,8 @@ namespace umath {
 // 判断VectorXd中的元素是不是全部大于或等于0
 bool is_positive(const Eigen::VectorXd &value);
 
+double std_normal(const unsigned int& seed=0);
+
 // 产生均值为mean，方差为variance且类型double的随机数
 double randomd(const double &mean, const double &variance, const unsigned int& seed=0);
 
