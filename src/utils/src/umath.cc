@@ -12,20 +12,20 @@ bool umath::is_positive(const Eigen::VectorXd &value) {
 }
 
 double umath::std_normal(const unsigned int &seed) {
-    static std::mt19937_64 engine(seed == 0 ? std::random_device()() : seed);  
-    static std::normal_distribution<double> dist(0, 1);  
-    static bool initialized = false;  
-    if (!initialized) {  
+    static std::mt19937_64 engine(seed == 0 ? std::random_device()() : seed);
+    static std::normal_distribution<double> dist(0, 1);
+    static bool initialized = false;
+    if (!initialized) {
         logger::get("umath")->info("Init random engine with seed {}", seed);
         initialized = true;
-    } 
+    }
     double value = dist(engine);
     return value;
 }
 
 double umath::randomd(const double &mean, const double &variance, const unsigned int &seed) {
-    double stddev                  = std::sqrt(variance);
-    double value = umath::std_normal(seed) * stddev + mean;
+    double stddev = std::sqrt(variance);
+    double value  = umath::std_normal(seed) * stddev + mean;
     return value;
 }
 

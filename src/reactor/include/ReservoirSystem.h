@@ -15,12 +15,12 @@
 
 class ReservoirSystem {
   private:
-    static RiverGroup *in_ptr;
-    static RiverGroup *out_ptr;
-    static Reservoir *res_ptr;
-    static Ammonification *ammon_ptr;
-    static Nitrification *nitri_ptr;
-    static Denitrification *deni_ptr;
+    static RiverGroup in;
+    static RiverGroup out;
+    static Reservoir res;
+    static Ammonification ammon;
+    static Nitrification nitri;
+    static Denitrification deni;
 
     static bool system_inited;
     static int status_len;

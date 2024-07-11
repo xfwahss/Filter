@@ -6,6 +6,7 @@ RiverGroup::~RiverGroup() {
     while (iter != rivers.end()) {
         delete iter->second;
         iter-> second = nullptr;
+        iter++;
     }
 }
 
