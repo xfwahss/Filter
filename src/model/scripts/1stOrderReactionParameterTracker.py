@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     ############### 数据同化部分
     write_input(Obs=c_obs, R=0.1)
-    run_model("bin/ModelDegrade.exe", toggle=True)
+    run_model("bin/1stOrderReactionParameterTracker.exe", toggle=True)
     c_filter, k_filter, dk, prior_c, ddk = read_status()
     c_variance, k_variance = read_variance()
 
