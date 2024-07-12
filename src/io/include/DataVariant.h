@@ -10,6 +10,10 @@ class DataVariant {
   public:
     DataVariant()  = default;
     ~DataVariant() = default;
+    static double stod(const std::string& s);
+    static float stof(const std::string& s);
+    static int stoi(const std::string& s);
+    static bool stob(const std::string& s);
     // 转化返回double类型
     double dvalue();
     // 转化返回为float 类型
