@@ -6,7 +6,7 @@ set(LOGGER_H ${CMAKE_SOURCE_DIR}/src/logger/include)
 aux_source_directory(src LIBSRC)
 add_library(${PROJECT_NAME} SHARED ${LIBSRC})
 target_include_directories(${PROJECT_NAME} PUBLIC include ${LOGGER_H})
-target_link_libraries(${PROJECT_NAME} PRIVATE logger)
+target_link_libraries(${PROJECT_NAME} PUBLIC logger)
 
 # 添加测试
 if(${BUILD_TEST})

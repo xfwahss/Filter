@@ -1,3 +1,11 @@
+/*
+ * @Description:
+ * @version:
+ * @Author: xfwahss
+ * @Date: 2024-07-11 18:14:30
+ * @LastEditors: xfwahss
+ * @LastEditTime: 2024-07-12 09:31:40
+ */
 #ifndef DATAVARIANT_H
 #define DATAVARIANT_H
 #include <string>
@@ -10,10 +18,10 @@ class DataVariant {
   public:
     DataVariant()  = default;
     ~DataVariant() = default;
-    static double stod(const std::string& s);
-    static float stof(const std::string& s);
-    static int stoi(const std::string& s);
-    static bool stob(const std::string& s);
+    static double stod(const std::string &s);
+    static float stof(const std::string &s);
+    static int stoi(const std::string &s);
+    static bool stob(const std::string &s);
     // 转化返回double类型
     double dvalue();
     // 转化返回为float 类型

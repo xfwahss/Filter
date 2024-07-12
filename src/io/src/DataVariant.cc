@@ -1,3 +1,11 @@
+/*
+ * @Description: DataVariant.cc
+ * @version: v0.1
+ * @Author: xfwahss
+ * @Date: 2024-07-11 18:22:19
+ * @LastEditors: xfwahss
+ * @LastEditTime: 2024-07-12 09:35:53
+ */
 #include <DataVariant.h>
 #include <cctype>
 #include <logger.h>

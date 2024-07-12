@@ -1,12 +1,20 @@
+/*
+ * @Description:
+ * @version:
+ * @Author: xfwahss
+ * @Date: 2024-05-17 20:42:42
+ * @LastEditors: xfwahss
+ * @LastEditTime: 2024-07-12 09:40:00
+ */
 #ifndef EXCELIO_H
 #define EXCELIO_H
 #include "FileIO.h"
+#include <DataVariant.h>
 #include <Eigen/Dense>
 #include <OpenXLSX.hpp>
 #include <logger.h>
 #include <unordered_map>
 #include <vector>
-#include <DataVariant.h>
 
 class ExcelIO : public FileIO {
   public:
@@ -42,6 +50,16 @@ class ExcelIO : public FileIO {
 
     std::unordered_map<std::string, double> read_dict(const std::string &sheet_name, const int &index_column,
                                                       const int &value_column, const int &start_row = 1);
+    /*
+     *@breif 读取Excel文件的配置文件,信息放在sheet中
+     *@param sheet_name sheet名称，默认是config
+     *@param key_column 存放key的列位置
+     *@param value_column 存放value的列位置
+     *@param header_row 存放一共读取几行(包括header行)
+     */
+    std::unordered_map<std::string, std::string> read_config(const std::string &sheet_name = "config",
+                                                             const int &key_column = 1, const int &value_column = 2,
+                                                             const int &header_row = 1);
 
   protected:
     // 以double类型读取单元格数据

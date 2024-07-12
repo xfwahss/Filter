@@ -35,7 +35,7 @@ add_subdirectory(src/reactor)
 # 编译filter库
 add_subdirectory(src/filter)
 # 编译modle库
-add_subdirectory(src/model)
+add_subdirectory(src/model ${CMAKE_BINARY_DIR}/model)
 
 
 

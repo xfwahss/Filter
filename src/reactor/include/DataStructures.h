@@ -1,12 +1,12 @@
-/*!
- * @file DataStructues.h
- * @brief Define the data structure to store the status of each system
+/*
+ * @Description: Define the data structure to store the status of each system
  * component, and provide converting function between Eigen::VectorXd, and
  * overloads the assignment operator for Eigen::VectorXd to assign values
- * ​​to the structure
- * @author xfwahss
- * @version main-v0.1
- * @date 2024-04-28
+ * @version:
+ * @Author: xfwahss
+ * @Date: 2024-05-17 20:42:42
+ * @LastEditors: xfwahss
+ * @LastEditTime: 2024-07-12 12:39:12
  */
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
@@ -34,7 +34,7 @@ struct alignas(8) status_base {
         return os;
     }
 
-    status_base& operator=(const Eigen::VectorXd &v) {
+    status_base &operator=(const Eigen::VectorXd &v) {
         if (v.size() == this->element_nums) {
             double *first_p = const_cast<double *>(&this->element_nums);
             for (int i = 0; i < v.size(); ++i) {
@@ -56,7 +56,7 @@ struct test_status : public status_base {
 
 // 存储水库状态
 struct res_status {
-    static const int size = 6;
+    static const int size;
     double wl;
     double c_no;
     double c_na;
@@ -64,7 +64,7 @@ struct res_status {
     double T;
     double c_do;
     res_status() = default;
-    res_status(const Eigen::VectorXd &vec){
+    res_status(const Eigen::VectorXd &vec) {
         if (vec.size() == size) {
             wl   = vec(0);
             c_no = vec(1);
@@ -73,8 +73,7 @@ struct res_status {
             T    = vec(4);
             c_do = vec(5);
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:res_status");
+            throw std::length_error("Length of VectorXd does not match struct:res_status");
         }
     }
 
@@ -86,8 +85,8 @@ struct res_status {
      * @param T 温度
      * @param c_do 溶解氧浓度
      */
-    res_status(const double &wl, const double &c_no, const double &c_na,
-               const double &c_nn, const double &T, const double &c_do)
+    res_status(const double &wl, const double &c_no, const double &c_na, const double &c_nn, const double &T,
+               const double &c_do)
         : wl(wl), c_no(c_no), c_na(c_na), c_nn(c_nn), T(T), c_do(c_do) {}
     res_status &operator=(const Eigen::VectorXd &v) {
         if (v.size() == 6) {
@@ -99,8 +98,7 @@ struct res_status {
             c_do = v(5);
             return *this;
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:res_status");
+            throw std::length_error("Length of VectorXd does not match struct:res_status");
         }
     }
     operator Eigen::VectorXd() const {
@@ -111,7 +109,7 @@ struct res_status {
 };
 
 struct river_status {
-    static const int size = 4;
+    static const int size;
     double flow;
     double c_no;
     double c_na;
@@ -126,8 +124,7 @@ struct river_status {
      * @param c_na 河流氨氮浓度
      * @param c_nn 河流硝态氮浓度
      */
-    river_status(const double &flow, const double &c_no, const double &c_na,
-                 const double &c_nn)
+    river_status(const double &flow, const double &c_no, const double &c_na, const double &c_nn)
         : flow(flow), c_no(c_no), c_na(c_na), c_nn(c_nn) {
         load_organic = flow * c_no;
         load_ammonia = flow * c_na;
@@ -144,8 +141,7 @@ struct river_status {
             load_nitrate = flow * c_nn;
             return *this;
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:river_status");
+            throw std::length_error("Length of VectorXd does not match struct:river_status");
         }
     }
     operator Eigen::VectorXd() const {
@@ -156,7 +152,7 @@ struct river_status {
 };
 
 struct ammon_status {
-    static const int size = 2;
+    static const int size;
     double ro0;
     double ko1;
     ammon_status() = default;
@@ -167,14 +163,13 @@ struct ammon_status {
             ko1 = v(1);
             return *this;
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:ammon_status");
+            throw std::length_error("Length of VectorXd does not match struct:ammon_status");
         }
     };
 };
 
 struct nitri_status {
-    static const int size = 7;
+    static const int size;
     double ra0;
     double kab1;
     double foxmin;
@@ -192,11 +187,9 @@ struct nitri_status {
      *  @param theta_a 温度系数
      *  @param T_c 临界温度
      */
-    nitri_status(const double &ra0, const double &kab1, const double &foxmin,
-                 const double &c_oxc, const double &c_oxo,
+    nitri_status(const double &ra0, const double &kab1, const double &foxmin, const double &c_oxc, const double &c_oxo,
                  const double &theta_a, const double &T_c)
-        : ra0(ra0), kab1(kab1), foxmin(foxmin), c_oxc(c_oxc), c_oxo(c_oxo),
-          theta_a(theta_a), T_c(T_c){};
+        : ra0(ra0), kab1(kab1), foxmin(foxmin), c_oxc(c_oxc), c_oxo(c_oxo), theta_a(theta_a), T_c(T_c){};
     nitri_status &operator=(const Eigen::VectorXd &v) {
         if (v.size() == size) {
             ra0     = v(0);
@@ -208,8 +201,7 @@ struct nitri_status {
             T_c     = v(6);
             return *this;
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:nitri_status");
+            throw std::length_error("Length of VectorXd does not match struct:nitri_status");
         }
     }
     operator Eigen::VectorXd() const {
@@ -220,7 +212,7 @@ struct nitri_status {
 };
 
 struct deni_status {
-    static const int size = 6;
+    static const int size;
     double rn0;
     double knb1;
     double Tnc;
@@ -236,11 +228,9 @@ struct deni_status {
      * @param c_noxc 临界溶解氧浓度
      * @param c_noxo 最优溶解氧浓度
      */
-    deni_status(const double &rn0, const double &knb1, const double &Tnc,
-                const double &theta_n, const double &c_noxc,
+    deni_status(const double &rn0, const double &knb1, const double &Tnc, const double &theta_n, const double &c_noxc,
                 const double &c_noxo)
-        : rn0(rn0), knb1(knb1), Tnc(Tnc), theta_n(theta_n), c_noxc(c_noxc),
-          c_noxo(c_noxo){};
+        : rn0(rn0), knb1(knb1), Tnc(Tnc), theta_n(theta_n), c_noxc(c_noxc), c_noxo(c_noxo){};
     deni_status &operator=(const Eigen::VectorXd &v) {
         if (v.size() == 6) {
             rn0     = v(0);
@@ -251,8 +241,7 @@ struct deni_status {
             c_noxo  = v(5);
             return *this;
         } else {
-            throw std::length_error(
-                "Length of VectorXd does not match struct:deni_status");
+            throw std::length_error("Length of VectorXd does not match struct:deni_status");
         }
     };
     operator Eigen::VectorXd() const {

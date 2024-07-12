@@ -29,8 +29,6 @@ aux_source_directory(test TESTSRC)
 foreach(test_file ${TESTSRC})
     get_filename_component(test_exe_name ${test_file} NAME_WE)
     add_executable(${test_exe_name} ${test_file})
-    target_include_directories(${test_exe_name} PRIVATE include)
-
     target_include_directories(${test_exe_name} PRIVATE {
         ${IOHEADER}
         ${FILTERHEADER}

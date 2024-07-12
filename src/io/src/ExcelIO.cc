@@ -23,8 +23,7 @@ ExcelIO::~ExcelIO() {
     }
 }
 
-DataVariant ExcelIO::read_cell(const std::string &sheet_name, const int &row,
-                                                                       const int &column) const {
+DataVariant ExcelIO::read_cell(const std::string &sheet_name, const int &row, const int &column) const {
     auto ws                     = file.workbook().worksheet(sheet_name);
     OpenXLSX::XLCellValue value = ws.cell(row, column).value();
     DataVariant v;
@@ -191,3 +190,14 @@ std::unordered_map<std::string, double> ExcelIO::read_dict(const std::string &sh
     }
     return dicts;
 }
+
+std::unordered_map<std::string, std::string> ExcelIO::read_config(const std::string &sheet_name, const int &key_column,
+                                                                  const int &value_column, const int &header_row) {
+    std::unordered_map<std::string, std::string> dicts;
+    int row_nums = DataVariant::stoi(read_cell(sheet_name, header_row, value_column).svalue());
+    for(int i=1; i < row_nums + 1; ++i){
+        std::string key = read_cell(sheet_name, header_row + i, key_column).svalue();
+        dicts[key] = read_cell(sheet_name, header_row + i, value_column).svalue();
+    }
+    return dicts;
+                                                                  }
