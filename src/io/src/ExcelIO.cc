@@ -8,6 +8,9 @@ ExcelIO::ExcelIO(const std::string &filename, const std::string &mode) : FileIO(
         if (mode == "w") {
             file.create(filename);
         }
+        if (mode == "wa"){
+            file.open(filename);
+        }
         if (mode == "r") {
             file.open(filename);
         }
@@ -15,6 +18,10 @@ ExcelIO::ExcelIO(const std::string &filename, const std::string &mode) : FileIO(
 }
 ExcelIO::~ExcelIO() {
     if (mode == "w") {
+        file.save();
+        file.close();
+    }
+    if (mode == "wa"){
         file.save();
         file.close();
     }
@@ -98,7 +105,7 @@ Eigen::VectorXd ExcelIO::read_row(const std::string &sheet_name, const int &row,
     int nums = (end_columns == -1) ? get_columns(sheet_name) : end_columns;
     Eigen::VectorXd value(nums - start_column + 1);
     for (int i = start_column; i < nums + 1; ++i) {
-        value(i - start_column) = get_cell_value(sheet_name, row, i);
+        value(i - start_column) = read_cell(sheet_name, row, i).dvalue();
     }
     return value;
 }

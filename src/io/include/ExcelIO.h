@@ -25,6 +25,16 @@ class ExcelIO : public FileIO {
      * 左上角第一个单元格坐标为(1, 1)
      */
     DataVariant read_cell(const std::string &sheet_name, const int &row, const int &column) const;
+
+    // 向单元格内写入数据
+    template <typename T>
+    void write_cell(const T &value, const std::string &sheet_name, const int &row, const int &column) {
+        if (!is_string_invector(sheet_name, file.workbook().sheetNames())) {
+            file.workbook().addWorksheet(sheet_name);
+        }
+        auto wks                      = file.workbook().worksheet(sheet_name);
+        wks.cell(row, column).value() = value;
+    }
     // 空白单元格自动填充-999
     Eigen::VectorXd read_row(const std::string &sheet_name, const int &row, const int &start_column = 1,
                              const int &end_columns = -1);
