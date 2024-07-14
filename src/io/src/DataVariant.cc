@@ -14,7 +14,7 @@
 double DataVariant::stod(const std::string &s) {
     for (char c : s) {
         if (!std::isdigit(c)) {
-            logger::get("DataVariant-cc")->warn("Can't covert {} to double, replaced with -999.0", s);
+            logger::get("DataVariant-cc")->debug("Can't covert {} to double, replaced with -999.0", s);
             return -999.0;
         }
     }
@@ -24,7 +24,7 @@ double DataVariant::stod(const std::string &s) {
 float DataVariant::stof(const std::string &s) {
     for (char c : s) {
         if (!std::isdigit(c)) {
-            logger::get("DataVariant-cc")->warn("Can't covert {} to float, replaced with -999.0", s);
+            logger::get("DataVariant-cc")->debug("Can't covert {} to float, replaced with -999.0", s);
             return -999.0;
         }
     }
@@ -34,7 +34,7 @@ float DataVariant::stof(const std::string &s) {
 int DataVariant::stoi(const std::string &s) {
     for (char c : s) {
         if (!std::isdigit(c)) {
-            logger::get("DataVariant-cc")->warn("Can't covert {} to int, replaced with -999.0", s);
+            logger::get("DataVariant-cc")->debug("Can't covert {} to int, replaced with -999.0", s);
             return -999.0;
         }
     }
@@ -50,7 +50,7 @@ bool DataVariant::stob(const std::string &s) {
     } else if(lower_str == "false"){
         return false;
     } else{
-        logger::get("DataVariant-cc")->warn("Can't covert {} to bool, replaced with false", s);
+        logger::get("DataVariant-cc")->debug("Can't covert {} to bool, replaced with false", s);
         return false;
     }
 }
