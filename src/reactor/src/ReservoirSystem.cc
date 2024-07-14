@@ -77,6 +77,7 @@ Eigen::VectorXd &ReservoirSystem::predict(Eigen::VectorXd &status, const Eigen::
     double ro = ammon.rate(res_s.c_no);
     double ra = nitri.rate(res_s.c_do, res_s.T, res_s.c_na);
     double rn = deni.rate(res_s.c_do, res_s.T, res_s.c_nn);
+    logger::get("ReservoirSystem-cc")->debug("ro: {:.4f}; ra: {:.4f}; rn: {:.4f}", ro, ra, rn);
     status = res.predict(in_flows, out_flows, ro, ra, rn, dt);
     return status;
 }

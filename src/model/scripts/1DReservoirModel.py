@@ -5,7 +5,42 @@ import model_tool
 import subprocess
 
 if __name__ == "__main__":
-    subprocess.run(["build/bin/1DReservoirModel"])
+    ro0 = 1e-10
+    ko1 = 1e-6
+
+    ra0=1e-10
+    kab1 = 1e-5
+    foxmin = 0.2
+    c_oxc = 2
+    c_oxo = 8
+    theta_a = 2
+    T_c = 10
+
+    rn0 = 5e-9
+    knb1 = 8e-4
+    Tnc = 8
+    theta_n = 3
+    c_noxc = 8
+    c_noxo = 2
+
+    subprocess.run(["build/bin/1DReservoirModel", "-i", "test/data/1DReservoirModel_Origin.xlsx",
+                    "-o", "test/output/1DReservoirModel_Origin_output.xlsx",
+                    "--ro0", f"{ro0}",
+                    "--ko1", f"{ko1}",
+                    "--ra0", f"{ra0}",
+                    "--kab1", f"{kab1}",
+                    "--foxmin", f"{foxmin}",
+                    "--c_oxc", f"{c_oxc}",
+                    "--c_oxo", f"{c_oxo}",
+                    "--theta_a", f"{theta_a}",
+                    "--T_c", f"{T_c}",
+                    "--rn0", f"{rn0}",
+                    "--knb1", f"{knb1}",
+                    "--Tnc", f"{Tnc}",
+                    "--theta_n", f"{theta_n}",
+                    "--c_noxc", f"{c_noxc}",
+                    "--c_noxo", f"{c_noxo}"])
+
     simu = pd.read_excel("test/output/1DReservoirModel_Origin_output.xlsx", sheet_name="Simulation")
     obs = pd.read_excel("test/data/1DReservoirModel_Origin.xlsx", sheet_name="Res_Avg")
 
