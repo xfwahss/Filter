@@ -43,6 +43,8 @@ class MyProblem(ea.Problem):  # 继承Problem父类
         x1 = Vars[:, [0]]
         x2 = Vars[:, [1]]
         x3 = Vars[:, [2]]
+        print(x1)
+        exit()
 
         # 计算目标函数值，赋给pop种群对象的ObjV属性
         pop.ObjV = 4 * x1 + 2 * x2 + x3
@@ -55,7 +57,7 @@ class MyProblem(ea.Problem):  # 继承Problem父类
         )
 
     def calReferObjV(self):  # 设定目标数参考值（本问题目标函数参考值设定为理论最优值）
-        referenceObjV = np.array([[2.5]])
+        referenceObjV = np.array([[3.5]])
         return referenceObjV
 
 if __name__ == '__main__':
@@ -64,7 +66,7 @@ if __name__ == '__main__':
 
     # 种群设置
     Encoding = 'RI'  # 编码方式
-    NIND = 500 # 种群规模
+    NIND = 5000 # 种群规模
 
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders) # 创建区域描述器
     population = ea.Population(Encoding, Field, NIND) # 实例化种群对象(此时种群还没被真正初始化，仅仅是生成一个种群对象)
@@ -76,7 +78,7 @@ if __name__ == '__main__':
     myAlgorithm.recOper.XOVR = 0.7 # 设置交叉概率
     myAlgorithm.logTras = 1 # 设置每隔多少代记录日志，若设置为0则表示不记录日志
     myAlgorithm.verbose = True # 设置是否打印输出日志信息
-    myAlgorithm.drawing = 2 # 0 不绘图 1 绘制结果图 2 目标空间动画图  3 决策空间过程动画
+    myAlgorithm.drawing = 1 # 0 不绘图 1 绘制结果图 2 目标空间动画图  3 决策空间过程动画
 
     # 调用算法模板进行种群进化
     [BestIndi, population] = myAlgorithm.run() # 执行算法模板，得到最优个体以及最后一代种群
