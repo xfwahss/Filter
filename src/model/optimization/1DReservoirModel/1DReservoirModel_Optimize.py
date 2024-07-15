@@ -13,6 +13,9 @@ import numpy as np
 import geatpy as ea
 import subprocess
 import pandas as pd
+from multiprocessing import Pool
+import multiprocessing as mp
+import shutil
 
 
 def rmse(value_model:np.array, value_obs:np.array):  
@@ -49,7 +52,42 @@ def rmse(value_model:np.array, value_obs:np.array):
     rmse_value = np.sqrt(np.mean(squared_diff)) 
     return rmse_value
 
+obs = pd.read_excel("D:/Gitlocal/Filter/test/data/1DReservoirModel_Origin.xlsx", sheet_name="Res_Avg")
+Res_Cno_obs = obs["Res_Cno"].values
+Res_Cna_obs = obs["Res_Cna"].values
+Res_Cnn_obs = obs["Res_Cnn"].values
 
+def calc_rmse(i, C_ro0, C_ko1, C_ra0, C_kab1, C_foxmin, C_c_oxc, C_c_oxo, C_theta_a,
+                C_T_c, C_rn0, C_knb1, C_Tnc, C_theta_n, C_c_noxc, C_c_noxo):
+    print(i)
+    shutil.copy("D:/Gitlocal/Filter/test/data/1DReservoirModel_Origin.xlsx",
+                f"D:/Gitlocal/Filter/test/temp/1DReservoirModel_Origin{i}.xlsx")
+    subprocess.run(["D:/Gitlocal/Filter/build/bin/1DReservoirModel", "-i", f"D:/Gitlocal/Filter/test/temp/1DReservoirModel_Origin{i}.xlsx",
+                    "-o", f"D:/Gitlocal/Filter/test/temp/1DReservoirModel_Origin_output{i}.xlsx",
+                    "--ro0", f"{C_ro0}",
+                    "--ko1", f"{C_ko1}",
+                    "--ra0", f"{C_ra0}",
+                    "--kab1", f"{C_kab1}",
+                    "--foxmin", f"{C_foxmin}",
+                    "--c_oxc", f"{C_c_oxc}",
+                    "--c_oxo", f"{C_c_oxo}",
+                    "--theta_a", f"{C_theta_a}",
+                    "--T_c", f"{C_T_c}",
+                    "--rn0", f"{C_rn0}",
+                    "--knb1", f"{C_knb1}",
+                    "--Tnc", f"{C_Tnc}",
+                    "--theta_n", f"{C_theta_n}",
+                    "--c_noxc", f"{C_c_noxc}",
+                    "--c_noxo", f"{C_c_noxo}"], stdout=subprocess.DEVNULL)
+    simu = pd.read_excel(f"D:/Gitlocal/Filter/test/temp/1DReservoirModel_Origin_output{i}.xlsx", sheet_name="Simulation")
+    cno_simu = simu.iloc[:, 1].values
+    cna_simu = simu.iloc[:, 2].values
+    cnn_simu = simu.iloc[:, 3].values
+
+    a = rmse(cno_simu, Res_Cno_obs)
+    b = rmse(cna_simu, Res_Cna_obs)
+    c = rmse(cnn_simu, Res_Cnn_obs)
+    return a, b, c
 class Model_Train(ea.Problem):  # 继承Problem父类
 
     def __init__(self):
@@ -98,59 +136,37 @@ class Model_Train(ea.Problem):  # 继承Problem父类
         f_cno = np.zeros_like(ra0)
         f_cna = np.zeros_like(ra0)
         f_cnn = np.zeros_like(ra0)
-        for i in range(f_cno.shape[0]):
-            C_ro0 = ro0[i, 0]
-            C_ko1 = ko1[i, 0]
 
-            C_ra0 = ra0[i, 0]
-            C_kab1 = kab1[i, 0]
-            C_foxmin = foxmin[i, 0]
-            C_c_oxc = c_oxc[i, 0]
-            C_c_oxo = c_oxo[i, 0]
-            C_theta_a = theta_a[i, 0]
-            C_T_c = T_c[i, 0]
+        core_nums = int(mp.cpu_count())
+        results = []
 
-            C_rn0 = rn0[i, 0]
-            C_knb1 = knb1[i, 0]
-            C_Tnc = Tnc[i, 0]
-            C_theta_n = theta_n[i, 0]
-            C_c_noxc = c_noxc[i, 0]
-            C_c_noxo = c_noxo[i, 0]
+        with Pool(core_nums) as pool:
+            for i in range(f_cno.shape[0]):
+                C_ro0 = ro0[i, 0]
+                C_ko1 = ko1[i, 0]
 
-            subprocess.run(["D:/Gitlocal/Filter/build/bin/1DReservoirModel", "-i", "D:/Gitlocal/Filter/test/data/1DReservoirModel_Origin.xlsx",
-                            "-o", "D:/Gitlocal/Filter/test/output/1DReservoirModel_Origin_output.xlsx",
-                            "--ro0", f"{C_ro0}",
-                            "--ko1", f"{C_ko1}",
-                            "--ra0", f"{C_ra0}",
-                            "--kab1", f"{C_kab1}",
-                            "--foxmin", f"{C_foxmin}",
-                            "--c_oxc", f"{C_c_oxc}",
-                            "--c_oxo", f"{C_c_oxo}",
-                            "--theta_a", f"{C_theta_a}",
-                            "--T_c", f"{C_T_c}",
-                            "--rn0", f"{C_rn0}",
-                            "--knb1", f"{C_knb1}",
-                            "--Tnc", f"{C_Tnc}",
-                            "--theta_n", f"{C_theta_n}",
-                            "--c_noxc", f"{C_c_noxc}",
-                            "--c_noxo", f"{C_c_noxo}"])
+                C_ra0 = ra0[i, 0]
+                C_kab1 = kab1[i, 0]
+                C_foxmin = foxmin[i, 0]
+                C_c_oxc = c_oxc[i, 0]
+                C_c_oxo = c_oxo[i, 0]
+                C_theta_a = theta_a[i, 0]
+                C_T_c = T_c[i, 0]
 
-            simu = pd.read_excel("D:/Gitlocal/Filter/test/output/1DReservoirModel_Origin_output.xlsx", sheet_name="Simulation")
-            obs = pd.read_excel("D:/Gitlocal/Filter/test/data/1DReservoirModel_Origin.xlsx", sheet_name="Res_Avg")
+                C_rn0 = rn0[i, 0]
+                C_knb1 = knb1[i, 0]
+                C_Tnc = Tnc[i, 0]
+                C_theta_n = theta_n[i, 0]
+                C_c_noxc = c_noxc[i, 0]
+                C_c_noxo = c_noxo[i, 0]
+                results.append(pool.apply_async(calc_rmse, (i, C_ro0, C_ko1, C_ra0, C_kab1, C_foxmin, C_c_oxc, C_c_oxo, C_theta_a,
+                                                C_T_c, C_rn0, C_knb1, C_Tnc, C_theta_n, C_c_noxc, C_c_noxo)))
+                                                
+            for i, res in enumerate(results):
+                a, b, c = res.get()
+                f_cno[i, 0], f_cna[i, 0], f_cnn[i, 0] = a, b, c
 
-
-            cno_simu = simu.iloc[:, 1].values
-            cna_simu = simu.iloc[:, 2].values
-            cnn_simu = simu.iloc[:, 3].values
-
-            Res_Cno_obs = obs["Res_Cno"].values
-            Res_Cna_obs = obs["Res_Cna"].values
-            Res_Cnn_obs = obs["Res_Cnn"].values
-
-            f_cno[i, 0] = rmse(cno_simu, Res_Cno_obs)
-            f_cna[i, 0] = rmse(cna_simu, Res_Cna_obs)
-            f_cnn[i, 0] = rmse(cnn_simu, Res_Cnn_obs)
-        print(np.hstack([f_cno, f_cna, f_cnn]))
+        # print(np.hstack([f_cno, f_cna, f_cnn]))
 
         pop.ObjV = np.hstack([f_cno, f_cna, f_cnn])
 
@@ -170,14 +186,14 @@ if __name__ == '__main__':
 
     # 种群设置
     Encoding = 'RI'  # 编码方式
-    NIND = 5 # 种群规模
+    NIND = 50 # 种群规模
 
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders) # 创建区域描述器
     population = ea.Population(Encoding, Field, NIND) # 实例化种群对象(此时种群还没被真正初始化，仅仅是生成一个种群对象)
 
     # 算法参数设置
     myAlgorithm = ea.moea_NSGA2_templet(problem, population)
-    myAlgorithm.MAXGEN = 10 # 最大进化代数
+    myAlgorithm.MAXGEN = 20 # 最大进化代数
     myAlgorithm.mutOper.F = 0.5 # 差分进化中的参数F
     myAlgorithm.recOper.XOVR = 0.7 # 设置交叉概率
     myAlgorithm.logTras = 1 # 设置每隔多少代记录日志，若设置为0则表示不记录日志
