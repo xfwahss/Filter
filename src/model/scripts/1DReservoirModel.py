@@ -5,23 +5,23 @@ import model_tool
 import subprocess
 
 if __name__ == "__main__":
-    ro0 = 1e-9
-    ko1 = 1e-12
+    ro0 = 1e-12    # 最大1e-9
+    ko1 = 1.75e-5
 
-    ra0=1e-9
-    kab1 = 2.8e-4
-    foxmin = 0.64689
-    c_oxc = 1.692
-    c_oxo = 7.938
-    theta_a = 7.212
-    T_c = 14.16
+    ra0=1e-11 # 最大1e-9
+    kab1 = 2.98e-4
+    foxmin = 0.210
+    c_oxc = 3.968
+    c_oxo = 8.67
+    theta_a = 5.558
+    T_c = -1.13
 
-    rn0 = 1e-8
-    knb1 = 0.00067
-    Tnc = 6.236
-    theta_n = 2.6888
-    c_noxc = 5.0522
-    c_noxo = 3.906
+    rn0 = 2e-8 # 最大1e-8
+    knb1 = 0.0003
+    Tnc = 5.64
+    theta_n = 7.459
+    c_noxc = 7.8768
+    c_noxo = 5.719
 
     subprocess.run(["build/bin/1DReservoirModel", "-i", "test/data/1DReservoirModel_Origin.xlsx",
                     "-o", "test/output/1DReservoirModel_Origin_output.xlsx",

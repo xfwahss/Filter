@@ -21,19 +21,19 @@ endif ()
 # 全局包括eigen的头文件
 include_directories(src/third_party/eigen)
 # 全局添加logger库
-add_subdirectory(src/logger)
+add_subdirectory(src/logger ${CMAKE_BINARY_DIR}/logger)
 include_directories(${CMAKE_SOURCE_DIR}/src/logger/include)
 
 # 全局添加args库
-include_directories(src/third_party/args)
+include_directories(src/third_party/args ${CMAKE_BINARY_DIR}/args)
 # 编译utils库
-add_subdirectory(src/utils)
+add_subdirectory(src/utils ${CMAKE_BINARY_DIR}/utils)
 # 编译io库
-add_subdirectory(src/io)
+add_subdirectory(src/io ${CMAKE_BINARY_DIR}/io)
 # 编译reactor库
-add_subdirectory(src/reactor)
+add_subdirectory(src/reactor ${CMAKE_BINARY_DIR}/reactor)
 # 编译filter库
-add_subdirectory(src/filter)
+add_subdirectory(src/filter ${CMAKE_BINARY_DIR}/filter)
 # 编译modle库
 add_subdirectory(src/model ${CMAKE_BINARY_DIR}/model)
 
