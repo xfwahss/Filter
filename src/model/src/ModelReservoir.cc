@@ -92,8 +92,8 @@ class ReservoirModel {
     Eigen::VectorXd read_force(ReservoirIO &file);
     void update_force(const Eigen::VectorXd &river_in_stat,
                       const Eigen::VectorXd &river_out_stat,
-                      ammon_status ammon_stat, nitri_status ni_stat,
-                      deni_status deni_stat, const double &res_T,
+                      AmmonificationStatus ammon_stat, NitrificationStatus ni_stat,
+                      DenificationStatus deni_stat, const double &res_T,
                       const double &res_do);
     void predict(const double &dt);
     void simulate(const double &dt, ReservoirIO &file);
@@ -107,8 +107,8 @@ ReservoirModel::ReservoirModel(RiverSystem &rivers_in, RiverSystem &rivers_out,
 
 void ReservoirModel::update_force(const Eigen::VectorXd &river_in_stat,
                                   const Eigen::VectorXd &river_out_stat,
-                                  ammon_status ammon_stat, nitri_status ni_stat,
-                                  deni_status deni_stat, const double &res_T,
+                                  AmmonificationStatus ammon_stat, NitrificationStatus ni_stat,
+                                  DenificationStatus deni_stat, const double &res_T,
                                   const double &res_do) {
     rivers_in.update(river_in_stat);
     rivers_out.update(river_out_stat);
@@ -116,7 +116,7 @@ void ReservoirModel::update_force(const Eigen::VectorXd &river_in_stat,
     nitri.update(ni_stat);
     deni.update(deni_stat);
 
-    res_status update_res(res.get_status().wl, res.get_status().c_no,
+    ReservoirStatus update_res(res.get_status().wl, res.get_status().c_no,
                           res.get_status().c_na, res.get_status().c_nn, res_T,
                           res_do);
     res.update(update_res);
@@ -139,7 +139,7 @@ void ReservoirModel::predict(const double &dt) {
     load_amm_out = rivers_out.get_status()(2);
     load_nit_out = rivers_out.get_status()(3);
 
-    res_status res_cur = res.get_status();
+    ReservoirStatus res_cur = res.get_status();
 
     double ro = ammon.rate(res_cur.c_no);
     double rn = deni.rate(res_cur.c_do, res_cur.T, res_cur.c_nn);
@@ -162,17 +162,17 @@ void ReservoirModel::simulate(const double &dt, ReservoirIO &file) {
         Eigen::VectorXd river_out = value.segment(8, 8);
         double res_T              = value(16);
         double res_do             = value(17);
-        ammon_status amm_sta;
+        AmmonificationStatus amm_sta;
         amm_sta = Eigen::VectorXd(value.segment(18, 2));
-        nitri_status ni_sta;
+        NitrificationStatus ni_sta;
         ni_sta = Eigen::VectorXd(value.segment(20, 7));
-        deni_status deni_sta;
+        DenificationStatus deni_sta;
         deni_sta = value.segment(27, 6);
         update_force(river_in, river_out, amm_sta, ni_sta, deni_sta, res_T,
                      res_do);
         predict(dt);
-        Eigen::VectorXd res_status = res.get_status();
-        file.write(res_status);
+        Eigen::VectorXd ReservoirStatus = res.get_status();
+        file.write(ReservoirStatus);
         ++i;
     }
 }

@@ -14,11 +14,11 @@
 #include <optional>
 
 Eigen::VectorXd to_org_amm_nit(Eigen::VectorXd &v) {
-    int nums = v.size() / river_status::size;
+    int nums = v.size() / RiverStatus::size;
     for (int i = 0; i < nums; ++i) {
-        if (v(1 + i * river_status::size) != -999) {
-            v(1 + i * river_status::size) =
-                v(1 + i * river_status::size) - v(2 + i * river_status::size) - v(3 + i * river_status::size);
+        if (v(1 + i * RiverStatus::size) != -999) {
+            v(1 + i * RiverStatus::size) =
+                v(1 + i * RiverStatus::size) - v(2 + i * RiverStatus::size) - v(3 + i * RiverStatus::size);
         }
     }
     return v;
@@ -53,7 +53,7 @@ void simulate(const std::string &filename_in, const std::string &filename_out) {
     }
 
     // 这里需要读取一个初始状态
-    Eigen::VectorXd status = file_in.read_column(params["init_status"], 2, 1, res_status::size);
+    Eigen::VectorXd status = file_in.read_column(params["init_status"], 2, 1, ReservoirStatus::size);
 
     Eigen::VectorXd rivers_in;
     Eigen::VectorXd rivers_out;
@@ -65,25 +65,25 @@ void simulate(const std::string &filename_in, const std::string &filename_out) {
         logger::get("1DReservoirModel")->info("Index: {}", i + 1);
 
         Eigen::VectorXd rivers_in_read =
-            file_in.read_row(params["rivers_in_name"], i + init_step + 1, 2, in_nums * river_status::size + 1);
+            file_in.read_row(params["rivers_in_name"], i + init_step + 1, 2, in_nums * RiverStatus::size + 1);
         rivers_in_read = to_org_amm_nit(rivers_in_read);
         rivers_in      = extract_flow(rivers_in_read, rivers_in);
 
         logger::log_vectorxd("rivers_in:{}", rivers_in, "1DReservoirModel");
 
         Eigen::VectorXd rivers_out_read =
-            file_in.read_row(params["rivers_out_name"], i + init_step + 1, 2, out_nums * river_status::size + 1);
+            file_in.read_row(params["rivers_out_name"], i + init_step + 1, 2, out_nums * RiverStatus::size + 1);
         rivers_out_read = to_org_amm_nit(rivers_out_read);
         rivers_out      = extract_flow(rivers_out_read, rivers_out);
         logger::log_vectorxd("rivers_out:{}", rivers_out, "1DReservoirModel");
 
-        ammon_k = file_in.read_row(params["ammonification_para"], i + init_step + 1, 2, ammon_status::size + 1);
+        ammon_k = file_in.read_row(params["ammonification_para"], i + init_step + 1, 2, AmmonificationStatus::size + 1);
         logger::log_vectorxd("ammon_k:{}", ammon_k, "1DReservoirModel");
 
-        nitri_k = file_in.read_row(params["nitrification_para"], i + init_step + 1, 2, nitri_status::size + 1);
+        nitri_k = file_in.read_row(params["nitrification_para"], i + init_step + 1, 2, NitrificationStatus::size + 1);
         logger::log_vectorxd("nitri_k:{}", nitri_k, "1DReservoirModel");
 
-        denitri_k = file_in.read_row(params["denitrification_para"], i + init_step + 1, 2, deni_status::size + 1);
+        denitri_k = file_in.read_row(params["denitrification_para"], i + init_step + 1, 2, DenificationStatus::size + 1);
         logger::log_vectorxd("denitri_k:{}", denitri_k, "1DReservoirModel");
 
         Eigen::VectorXd bnd_force(rivers_in.size() + rivers_out.size() + ammon_k.size() + nitri_k.size() +
@@ -93,7 +93,7 @@ void simulate(const std::string &filename_in, const std::string &filename_out) {
         status                    = ReservoirSystem::predict(status, bnd_force, in_nums, out_nums, dt);
 
         // 水库的T和DO直接读取
-        Eigen::VectorXd do_T_read = file_in.read_row(params["res_avg"], i + init_step + 1, 2, res_status::size + 1);
+        Eigen::VectorXd do_T_read = file_in.read_row(params["res_avg"], i + init_step + 1, 2, ReservoirStatus::size + 1);
         if (do_T_read(4) != -999) {
             status(4) = do_T_read(4);
         }

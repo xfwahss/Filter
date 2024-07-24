@@ -7,19 +7,19 @@ void Denitrification::init(const double &rn0, const double &knb1,
                            const double &Tnc, const double &theta_n,
                            const double &c_noxc, const double &c_noxo,
                            const double &beta) {
-    deni_status value(rn0, knb1, Tnc, theta_n, c_noxc, c_noxo);
+    DenificationStatus value(rn0, knb1, Tnc, theta_n, c_noxc, c_noxo);
     coeffecients = value;
     this->beta   = beta;
 }
 
-deni_status Denitrification::get_status() { return coeffecients; }
+DenificationStatus Denitrification::get_status() { return coeffecients; }
 
-void Denitrification::update(const deni_status &updated_status) {
+void Denitrification::update(const DenificationStatus &updated_status) {
     coeffecients = updated_status;
 }
 
 void Denitrification::update(const Eigen::VectorXd &status){
-    deni_status s;
+    DenificationStatus s;
     s = status;
     update(s);
 }

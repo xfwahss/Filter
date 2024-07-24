@@ -11,51 +11,10 @@
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 #include <Eigen/Dense>
-#include <iostream>
 #include <stdexcept>
 
-struct alignas(8) status_base {
-    double element_nums = 0;
-    status_base()       = default;
-    operator Eigen::VectorXd() const {
-        Eigen::VectorXd v(int(this->element_nums));
-        double *first_p = const_cast<double *>(&element_nums);
-        for (int i = 0; i < element_nums; ++i) {
-            v(i) = *(first_p + i + 1);
-        }
-        return v;
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, const status_base &p) {
-        double *first_p = const_cast<double *>(&p.element_nums);
-        for (int i = 0; i < p.element_nums; ++i) {
-            os << "value(" << i << "):  " << *(first_p + i + 1) << "\n";
-        }
-        return os;
-    }
-
-    status_base &operator=(const Eigen::VectorXd &v) {
-        if (v.size() == this->element_nums) {
-            double *first_p = const_cast<double *>(&this->element_nums);
-            for (int i = 0; i < v.size(); ++i) {
-                *(first_p + i + 1) = v(i);
-            }
-            return *this;
-        } else {
-            throw std::length_error("Length of VectorXd does not match status");
-        }
-    }
-};
-
-struct test_status : public status_base {
-    double a;
-    double b;
-    double c;
-    test_status() { element_nums = 3; }
-};
-
 // 存储水库状态
-struct res_status {
+struct ReservoirStatus {
     static const int size;
     double wl;
     double c_no;
@@ -63,8 +22,8 @@ struct res_status {
     double c_nn;
     double T;
     double c_do;
-    res_status() = default;
-    res_status(const Eigen::VectorXd &vec) {
+    ReservoirStatus() = default;
+    ReservoirStatus(const Eigen::VectorXd &vec) {
         if (vec.size() == size) {
             wl   = vec(0);
             c_no = vec(1);
@@ -73,7 +32,7 @@ struct res_status {
             T    = vec(4);
             c_do = vec(5);
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:res_status");
+            throw std::length_error("Length of VectorXd does not match struct:ReservoirStatus");
         }
     }
 
@@ -85,10 +44,10 @@ struct res_status {
      * @param T 温度
      * @param c_do 溶解氧浓度
      */
-    res_status(const double &wl, const double &c_no, const double &c_na, const double &c_nn, const double &T,
+    ReservoirStatus(const double &wl, const double &c_no, const double &c_na, const double &c_nn, const double &T,
                const double &c_do)
         : wl(wl), c_no(c_no), c_na(c_na), c_nn(c_nn), T(T), c_do(c_do) {}
-    res_status &operator=(const Eigen::VectorXd &v) {
+    ReservoirStatus &operator=(const Eigen::VectorXd &v) {
         if (v.size() == 6) {
             wl   = v(0);
             c_no = v(1);
@@ -98,7 +57,7 @@ struct res_status {
             c_do = v(5);
             return *this;
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:res_status");
+            throw std::length_error("Length of VectorXd does not match struct:ReservoirStatus");
         }
     }
     operator Eigen::VectorXd() const {
@@ -108,7 +67,7 @@ struct res_status {
     }
 };
 
-struct river_status {
+struct RiverStatus {
     static const int size;
     double flow;
     double c_no;
@@ -117,20 +76,20 @@ struct river_status {
     double load_organic;
     double load_ammonia;
     double load_nitrate;
-    river_status() = default;
+    RiverStatus() = default;
     /* @brief 创建并初始化河流状态
      * @param flow 河流流量
      * @param c_no 河流有机氮浓度
      * @param c_na 河流氨氮浓度
      * @param c_nn 河流硝态氮浓度
      */
-    river_status(const double &flow, const double &c_no, const double &c_na, const double &c_nn)
+    RiverStatus(const double &flow, const double &c_no, const double &c_na, const double &c_nn)
         : flow(flow), c_no(c_no), c_na(c_na), c_nn(c_nn) {
         load_organic = flow * c_no;
         load_ammonia = flow * c_na;
         load_nitrate = flow * c_nn;
     }
-    river_status &operator=(const Eigen::VectorXd &v) {
+    RiverStatus &operator=(const Eigen::VectorXd &v) {
         if (v.size() == 4) {
             flow         = v(0);
             c_no         = v(1);
@@ -141,7 +100,7 @@ struct river_status {
             load_nitrate = flow * c_nn;
             return *this;
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:river_status");
+            throw std::length_error("Length of VectorXd does not match struct:RiverStatus");
         }
     }
     operator Eigen::VectorXd() const {
@@ -151,24 +110,24 @@ struct river_status {
     }
 };
 
-struct ammon_status {
+struct AmmonificationStatus {
     static const int size;
     double ro0;
     double ko1;
-    ammon_status() = default;
-    ammon_status(const double &ro0, const double &ko1) : ro0(ro0), ko1(ko1){};
-    ammon_status &operator=(const Eigen::VectorXd &v) {
+    AmmonificationStatus() = default;
+    AmmonificationStatus(const double &ro0, const double &ko1) : ro0(ro0), ko1(ko1){};
+    AmmonificationStatus &operator=(const Eigen::VectorXd &v) {
         if (v.size() == size) {
             ro0 = v(0);
             ko1 = v(1);
             return *this;
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:ammon_status");
+            throw std::length_error("Length of VectorXd does not match struct:AmmonificationStatus");
         }
     };
 };
 
-struct nitri_status {
+struct NitrificationStatus {
     static const int size;
     double ra0;
     double kab1;
@@ -177,7 +136,7 @@ struct nitri_status {
     double c_oxo;
     double theta_a;
     double T_c;
-    nitri_status() = default;
+    NitrificationStatus() = default;
     /* @brief 创建并初始化硝化系统状态
      *  @param ra0 零阶反映速率
      *  @param kab1 20度时的一阶反应速率常数
@@ -187,10 +146,10 @@ struct nitri_status {
      *  @param theta_a 温度系数
      *  @param T_c 临界温度
      */
-    nitri_status(const double &ra0, const double &kab1, const double &foxmin, const double &c_oxc, const double &c_oxo,
+    NitrificationStatus(const double &ra0, const double &kab1, const double &foxmin, const double &c_oxc, const double &c_oxo,
                  const double &theta_a, const double &T_c)
         : ra0(ra0), kab1(kab1), foxmin(foxmin), c_oxc(c_oxc), c_oxo(c_oxo), theta_a(theta_a), T_c(T_c){};
-    nitri_status &operator=(const Eigen::VectorXd &v) {
+    NitrificationStatus &operator=(const Eigen::VectorXd &v) {
         if (v.size() == size) {
             ra0     = v(0);
             kab1    = v(1);
@@ -201,7 +160,7 @@ struct nitri_status {
             T_c     = v(6);
             return *this;
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:nitri_status");
+            throw std::length_error("Length of VectorXd does not match struct:NitrificationStatus");
         }
     }
     operator Eigen::VectorXd() const {
@@ -211,7 +170,7 @@ struct nitri_status {
     }
 };
 
-struct deni_status {
+struct DenificationStatus {
     static const int size;
     double rn0;
     double knb1;
@@ -219,7 +178,7 @@ struct deni_status {
     double theta_n;
     double c_noxc;
     double c_noxo;
-    deni_status() = default;
+    DenificationStatus() = default;
     /* 创建并初始化反硝化系统状态
      * @param rn0 零阶反硝化速率基值
      * @param knb1 一阶反硝化速率常数
@@ -228,10 +187,10 @@ struct deni_status {
      * @param c_noxc 临界溶解氧浓度
      * @param c_noxo 最优溶解氧浓度
      */
-    deni_status(const double &rn0, const double &knb1, const double &Tnc, const double &theta_n, const double &c_noxc,
+    DenificationStatus(const double &rn0, const double &knb1, const double &Tnc, const double &theta_n, const double &c_noxc,
                 const double &c_noxo)
         : rn0(rn0), knb1(knb1), Tnc(Tnc), theta_n(theta_n), c_noxc(c_noxc), c_noxo(c_noxo){};
-    deni_status &operator=(const Eigen::VectorXd &v) {
+    DenificationStatus &operator=(const Eigen::VectorXd &v) {
         if (v.size() == 6) {
             rn0     = v(0);
             knb1    = v(1);
@@ -241,7 +200,7 @@ struct deni_status {
             c_noxo  = v(5);
             return *this;
         } else {
-            throw std::length_error("Length of VectorXd does not match struct:deni_status");
+            throw std::length_error("Length of VectorXd does not match struct:DenificationStatus");
         }
     };
     operator Eigen::VectorXd() const {

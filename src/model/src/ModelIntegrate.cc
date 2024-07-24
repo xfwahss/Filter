@@ -68,7 +68,7 @@ class Model : public EnsembleModel {
         double alpha         = 0;
 
         // 子模型状态更新
-        res_status res_s(wl, res_cno, res_cna, res_cnn, res_T, res_cdo);
+        ReservoirStatus res_s(wl, res_cno, res_cna, res_cnn, res_T, res_cdo);
         reservoir.update(res_s);
 
         Eigen::VectorXd rivers_in_s(8);
@@ -81,10 +81,10 @@ class Model : public EnsembleModel {
             out_flow2_cnn;
         rivers_out.update(rivers_out_s);
 
-        deni_status deni_sta(deni_rn0, deni_knb1, deni_Tnc, deni_theta, deni_cnoxc, deni_cnoxo);
+        DenificationStatus deni_sta(deni_rn0, deni_knb1, deni_Tnc, deni_theta, deni_cnoxc, deni_cnoxo);
         deni_proc.update(deni_sta);
 
-        nitri_status ni_sta(ni_ra0, ni_kab1, ni_foxmin, ni_c_oxc, ni_c_oxo, ni_theta_a, ni_T_c);
+        NitrificationStatus ni_sta(ni_ra0, ni_kab1, ni_foxmin, ni_c_oxc, ni_c_oxo, ni_theta_a, ni_T_c);
         ni_proc.update(ni_sta);
 
         // 定义更新后的粒子状态,开始状态预测更新dt时间步
@@ -97,12 +97,12 @@ class Model : public EnsembleModel {
         double ra           = 0;
         double rn           = 0;
         reservoir.predict(dt, in(0), out(0), in(1), out(1), in(2), out(2), in(3), out(3), ro, ra, rn);
-        res_status next_res_status = reservoir.get_status();
+        ReservoirStatus next_ReservoirStatus = reservoir.get_status();
         predict_status(0)          = in_flow1;
         predict_status(1)          = in_flow2;
         predict_status(2)          = out_flow1;
         predict_status(3)          = out_flow2;
-        predict_status(4)          = next_res_status.wl;
+        predict_status(4)          = next_ReservoirStatus.wl;
         predict_status(5)          = in_flow1_cno;
         predict_status(6)          = in_flow1_cna;
         predict_status(7)          = in_flow1_cnn;
@@ -115,9 +115,9 @@ class Model : public EnsembleModel {
         predict_status(14)         = out_flow2_cno;
         predict_status(15)         = out_flow2_cna;
         predict_status(16)         = out_flow2_cnn;
-        predict_status(17)         = next_res_status.c_no;
-        predict_status(18)         = next_res_status.c_na;
-        predict_status(19)         = next_res_status.c_nn;
+        predict_status(17)         = next_ReservoirStatus.c_no;
+        predict_status(18)         = next_ReservoirStatus.c_na;
+        predict_status(19)         = next_ReservoirStatus.c_nn;
         return predict_status;
     };
 };

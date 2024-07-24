@@ -6,7 +6,7 @@
 
 class Denitrification {
   private:
-    deni_status coeffecients;
+    DenificationStatus coeffecients;
     double beta; // 曲率系数，溶解氧限制函数曲率
     double fnox(const double &c_ox);
     double kn1(const double &T);
@@ -38,9 +38,9 @@ class Denitrification {
      **************************************************************/
     double rate(const double &c_ox, const double &T, const double &c_ni);
     // 获取当前系统中的反硝化状态
-    deni_status get_status();
+    DenificationStatus get_status();
     // 更新当前系统中的反硝化状态
-    void update(const deni_status &updated_status);
+    void update(const DenificationStatus &updated_status);
     void update(const Eigen::VectorXd &status);
 };
 #endif

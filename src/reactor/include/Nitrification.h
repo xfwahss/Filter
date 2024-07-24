@@ -6,7 +6,7 @@
 // ra  = ra0 + fox * k1a * Cam
 class Nitrification {
   private:
-    nitri_status status;
+    NitrificationStatus status;
     double alpha;   // 曲率系数
 
     /***************************************************************
@@ -26,9 +26,9 @@ class Nitrification {
               const double &T_c, const double &alpha = 0);
     double rate(const double &c_ox, const double &T, const double &c_am);
     // 获取当前的状态给卡尔曼滤波
-    nitri_status get_status();
+    NitrificationStatus get_status();
 
-    void update(const nitri_status &updated_status);
+    void update(const NitrificationStatus &updated_status);
     void update(const Eigen::VectorXd &status);
 };
 

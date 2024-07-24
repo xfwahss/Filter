@@ -17,7 +17,7 @@ void RiverSystem::update(Eigen::VectorXd rivers_status) {
         double c_no = rivers_status(index * 4 + 1);
         double c_na = rivers_status(index * 4 + 2);
         double c_nn = rivers_status(index * 4 + 3);
-        river_status s(flow, c_no, c_na, c_nn);
+        RiverStatus s(flow, c_no, c_na, c_nn);
         iter->second->update(s);
         ++iter;
         ++index;
@@ -39,7 +39,7 @@ Eigen::VectorXd RiverSystem::sum() {
     Eigen::VectorXd total_rivers = Eigen::VectorXd::Zero(4);
     std::map<std::string, River *>::const_iterator iter = rivers.begin();
     while (iter != rivers.end()) {
-        river_status s = iter->second->get_status();
+        RiverStatus s = iter->second->get_status();
         total_rivers(0) += s.flow;
         total_rivers(1) += s.load_organic;
         total_rivers(2) += s.load_ammonia;

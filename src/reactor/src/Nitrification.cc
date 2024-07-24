@@ -45,9 +45,9 @@ double Nitrification::rate(const double &c_ox, const double &T,
     return rate;
 }
 
-nitri_status Nitrification::get_status() { return status; }
+NitrificationStatus Nitrification::get_status() { return status; }
 
-void Nitrification::update(const nitri_status &update_status) {
+void Nitrification::update(const NitrificationStatus &update_status) {
     status.ra0     = update_status.ra0;
     status.kab1    = update_status.kab1;
     status.foxmin  = update_status.foxmin;
@@ -58,7 +58,7 @@ void Nitrification::update(const nitri_status &update_status) {
 }
 
 void Nitrification::update(const Eigen::VectorXd& status){
-    nitri_status s;
+    NitrificationStatus s;
     s = status;
     update(s);
 }

@@ -4,7 +4,7 @@
 
 class Reservoir {
   private:
-    res_status status;
+    ReservoirStatus status;
     // 水量单位10^8 m3
     double volumn;
     // 由水位计算出水量
@@ -50,9 +50,9 @@ class Reservoir {
     ~Reservoir();
     void init(const double &wl, const double &c_no, const double &c_na, const double &c_nn, const double &T,
               const double &c_do);
-    res_status get_status();
+    ReservoirStatus get_status();
     // 更新系统当前先验状态信息
-    void update(res_status &status);
+    void update(ReservoirStatus &status);
     void update(const Eigen::VectorXd &status);
     /*
      * @brief 由当前状态向前推进一个时间步

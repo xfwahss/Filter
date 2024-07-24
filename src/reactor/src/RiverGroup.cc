@@ -21,7 +21,7 @@ void RiverGroup::update(Eigen::VectorXd rivers_status) {
     std::map<int, River *>::const_iterator iter = rivers.begin();
     int index                                           = 0;
     while (iter != rivers.end()) {
-        Eigen::VectorXd single_s = rivers_status.segment(index * river_status::size, river_status::size);
+        Eigen::VectorXd single_s = rivers_status.segment(index * RiverStatus::size, RiverStatus::size);
         iter->second->update(single_s);
         ++iter;
         ++index;
@@ -35,7 +35,7 @@ Eigen::VectorXd RiverGroup::sum() {
     Eigen::VectorXd total_rivers = Eigen::VectorXd::Zero(4);
     std::map<int, River *>::const_iterator iter = rivers.begin();
     while (iter != rivers.end()) {
-        river_status s = iter->second->get_status();
+        RiverStatus s = iter->second->get_status();
         total_rivers(0) += s.flow;
         total_rivers(1) += s.load_organic;
         total_rivers(2) += s.load_ammonia;

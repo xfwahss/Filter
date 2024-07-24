@@ -1,4 +1,5 @@
 #include <ReservoirSystem.h>
+#include <iostream>
 
 int main(){
     Eigen::VectorXd status(6);

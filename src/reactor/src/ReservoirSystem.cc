@@ -53,12 +53,12 @@ void ReservoirSystem::init_system(const Eigen::VectorXd &bnd_force, const int &i
     deni.init(0, 0, 0, 0, 0, 0);
 
     // 相关状态更新
-    status_len          = res_status::size;
-    in_status_len       = in_nums * river_status::size;
-    out_status_len      = out_nums * river_status::size;
-    ammonification_len  = ammon_status::size;
-    nitrification_len   = nitri_status::size;
-    denitrification_len = deni_status::size;
+    status_len          = ReservoirStatus::size;
+    in_status_len       = in_nums * RiverStatus::size;
+    out_status_len      = out_nums * RiverStatus::size;
+    ammonification_len  = AmmonificationStatus::size;
+    nitrification_len   = NitrificationStatus::size;
+    denitrification_len = DenificationStatus::size;
     bnd_force_len       = in_status_len + out_status_len + ammonification_len + nitrification_len + denitrification_len;
     system_inited       = true;
 }
@@ -71,7 +71,7 @@ Eigen::VectorXd &ReservoirSystem::predict(Eigen::VectorXd &status, const Eigen::
     update_bnd(bnd_force, in_nums, out_nums);
     update_status(status);
 
-    res_status res_s = status;
+    ReservoirStatus res_s = status;
     Eigen::VectorXd in_flows = in.get_status();
     Eigen::VectorXd out_flows = out.get_status();
     double ro = ammon.rate(res_s.c_no);

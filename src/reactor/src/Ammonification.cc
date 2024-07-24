@@ -5,12 +5,12 @@ void Ammonification::init(const double &ro0, const double &ko1) {
     status.ko1 = ko1;
 }
 
-void Ammonification::update(const ammon_status &updated_status) {
+void Ammonification::update(const AmmonificationStatus &updated_status) {
     status = updated_status;
 }
 
 void Ammonification::update(const Eigen::VectorXd &status){
-    ammon_status s;
+    AmmonificationStatus s;
     s = status;
     update(s);
 }

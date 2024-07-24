@@ -5,23 +5,23 @@ Reservoir::~Reservoir(){};
 
 void Reservoir::init(const double &wl, const double &c_no, const double &c_na, const double &c_nn, const double &T,
                      const double &c_do) {
-    res_status status(wl, c_no, c_na, c_nn, T, c_do);
+    ReservoirStatus status(wl, c_no, c_na, c_nn, T, c_do);
     this->status = status;
     this->volumn = wl_to_volumn(wl);
 }
 
-void Reservoir::update(res_status &status) {
+void Reservoir::update(ReservoirStatus &status) {
     this->status = status;
     this->volumn = wl_to_volumn(status.wl);
 }
 
 void Reservoir::update(const Eigen::VectorXd &status) {
-    res_status s;
+    ReservoirStatus s;
     s = status;
     update(s);
 }
 
-res_status Reservoir::get_status() { return status; }
+ReservoirStatus Reservoir::get_status() { return status; }
 
 double Reservoir::wl_to_volumn(const double &wl) { return 0.022846 * wl * wl - 5.341818 * wl + 314.495276; }
 
@@ -71,13 +71,13 @@ void Reservoir::predict(const double &dt, const double &flow_in, const double &f
     double next_co     = predict_organic(seconds, load_org_in, load_org_out, ro, next_volumn);
     double next_ca     = predict_ammonia(seconds, load_amm_in, load_amm_out, ro, ra, next_volumn);
     double next_cn     = predict_nitrate(seconds, load_nit_in, load_nit_out, ra, rn, next_volumn);
-    res_status update_status(next_wl, next_co, next_ca, next_cn, status.T, status.c_do);
+    ReservoirStatus update_status(next_wl, next_co, next_ca, next_cn, status.T, status.c_do);
     update(update_status);
 }
 
 Eigen::VectorXd Reservoir::predict(const Eigen::VectorXd &flow_in, const Eigen::VectorXd &flow_out, const double &ro,
                                     const double &ra, const double &rn, const double &dt) {
-    int status_len = res_status::size;
+    int status_len = ReservoirStatus::size;
     Eigen::VectorXd value(status_len);
     double seconds     = dt * 86400;
     double next_volumn = predict_volumn(seconds, flow_in(0), flow_out(0));
