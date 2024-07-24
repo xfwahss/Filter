@@ -16,7 +16,7 @@ double umath::std_normal(const unsigned int &seed) {
     static std::normal_distribution<double> dist(0, 1);
     static bool initialized = false;
     if (!initialized) {
-        logger::get("umath")->info("Init random engine with seed {}", seed);
+        Logger::get("umath")->info("Init random engine with seed {}", seed);
         initialized = true;
     }
     double value = dist(engine);
@@ -27,6 +27,26 @@ double umath::randomd(const double &mean, const double &variance, const unsigned
     double stddev = std::sqrt(variance);
     double value  = umath::std_normal(seed) * stddev + mean;
     return value;
+}
+
+// 在有误差的情况下计算相对误差
+Eigen::VectorXd umath::re(const Eigen::VectorXd &u1, const Eigen::MatrixXd &cov1, const Eigen::VectorXd &u2,
+                          const Eigen::MatrixXd &cov2, const int &sample_size, const unsigned int &seed) {
+    Logger::log_vectorxd("u1: {}", u1, "umath");
+    Logger::log_vectorxd("u2: {}", u2, "umath");
+    Eigen::VectorXd re = Eigen::VectorXd::Zero(u1.size());
+    for (int i = 0; i < re.size(); ++i) {
+        double re_sum = 0;
+        for (int j = 0; j < sample_size; ++j) {
+            double sample_u1  = randomd(u1(i), cov1(i, i), seed);
+            double sample_u2  = randomd(u2(i), cov2(i, i), seed);
+            double single_re  = -0.5 * sample_u2 / sample_u1 + 0.5 * sample_u1 / sample_u2;
+            re_sum           += single_re;
+        }
+        Logger::get("umath")->debug("re_sum: {}", re_sum);
+        re(i) = re_sum / (double)sample_size;
+    }
+    return re;
 }
 
 double umath::fill_missed_value(const double &value, const double &missed_value, const double &fill_value) {
@@ -55,15 +75,15 @@ Eigen::VectorXd umath::pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::Matr
                                               const unsigned int &seed) {
     int count                     = 0;
     Eigen::VectorXd random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
-    logger::get("console")->enable_backtrace(5);
+    Logger::get("console")->enable_backtrace(5);
     while ((!is_positive(random_vector)) && count < 100) {
         random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
-        logger::log_vectorxd("random vector:{}", random_vector);
+        Logger::log_vectorxd("random vector:{}", random_vector);
         count++;
     }
     if (count == 100) {
-        logger::get()->warn("Negative random vector was generated!");
-        logger::get()->dump_backtrace();
+        Logger::get()->warn("Negative random vector was generated!");
+        Logger::get()->dump_backtrace();
     }
 
     return random_vector;
