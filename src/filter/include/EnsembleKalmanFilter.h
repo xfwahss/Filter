@@ -169,7 +169,8 @@ template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen
     P                 = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
     // 记录观测值和真实值的差异
     diff_obs_prior    = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
-    logger::log_vectorxd("Relative Error", diff_obs_prior);
+    // diff_obs_prior = umath::re(z, R, H*X, H * P * H.transpose(), seed);
+    Logger::log_vectorxd("RE: {}", diff_obs_prior, "Ensemble RE");
 }
 
 template <class T>

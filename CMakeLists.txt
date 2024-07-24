@@ -20,6 +20,8 @@ endif ()
 
 # 全局包括eigen的头文件
 include_directories(src/third_party/eigen)
+# 全局包括indicators的头文件，进度条库
+include_directories(src/third_party/indicators/include)
 # 全局添加logger库
 add_subdirectory(src/logger ${CMAKE_BINARY_DIR}/logger)
 include_directories(${CMAKE_SOURCE_DIR}/src/logger/include)
@@ -36,6 +38,19 @@ add_subdirectory(src/reactor ${CMAKE_BINARY_DIR}/reactor)
 add_subdirectory(src/filter ${CMAKE_BINARY_DIR}/filter)
 # 编译modle库
 add_subdirectory(src/model ${CMAKE_BINARY_DIR}/model)
+
+
+# 测试文件
+if(${BUILD_TEST})
+aux_source_directory(test/src TEST_SRC)
+foreach(src_file ${TEST_SRC})
+    get_filename_component(test_exe_name ${src_file} NAME_WE)
+    add_executable(${test_exe_name} ${src_file})
+    add_test(NAME ${test_exe_name}
+             COMMAND ${test_exe_name}
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endforeach(src_file ${TEST_SRC})
+endif()
 
 
 
