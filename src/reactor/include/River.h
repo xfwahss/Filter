@@ -1,20 +1,37 @@
 #ifndef RIVER_H
 #define RIVER_H
-#include <DataStructures.h>
+#include <Eigen/Dense>
 
 class River {
   private:
-    RiverStatus status;
+    double flow;
+    double c_rpon;
+    double c_lpon;
+    double c_don;
+    double c_na;
+    double c_nn;
 
   public:
-    static int status_init_dims;
+    static const int status_nums;
     River();
     ~River();
-    void init(const double &flow, const double &c_no, const double &c_na, const double &c_nn);
-    RiverStatus get_status();
-    void update(RiverStatus &status);
-    void update(const Eigen::VectorXd &status);
-    // 用于河流状态预测, 给定逐日监测数据差量的平均值预测
-    void predict(const double &dt, const double &d_flow, const double &d_cno, const double &d_cna, const double &d_cnn);
+    void init(const double &flow, const double &c_rpon, const double &c_lpon,
+              const double &c_don, const double &c_na, const double &c_nn);
+    /* @brief 更新河流状态信息
+     * @param s 输入vector的变量格式如下：
+     * [flow, c_rpon, c_lpon, c_don, c_na, c_nn]
+     */
+    void update(const Eigen::VectorXd &s);
+    double flow_rate();
+    double load_rpon();
+    double load_lpon();
+    double load_don();
+    double load_na();
+    double load_nn();
+    /* @brief 返回河流的流量及相关负荷
+     *  @return Eigen::VectorXd 格式如下：
+     *  [flow, load_rpon, load_lpon, load_don, load_na, load_cnn]
+     */
+    Eigen::VectorXd flow_status();
 };
 #endif

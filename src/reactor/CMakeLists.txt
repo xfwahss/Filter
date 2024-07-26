@@ -3,10 +3,11 @@ message("Enter ${PROJECT_SOURCE_DIR}")
 
 # 添加动态链接库
 set(LOGGER_H ${CMAKE_SOURCE_DIR}/src/logger/include)
+set(UTILS_H ${CMAKE_SOURCE_DIR}/src/utils/include)
 aux_source_directory(src LIBSRC)
 add_library(${PROJECT_NAME} SHARED ${LIBSRC})
-target_include_directories(${PROJECT_NAME} PUBLIC include ${LOGGER_H})
-target_link_libraries(${PROJECT_NAME} PUBLIC logger)
+target_include_directories(${PROJECT_NAME} PUBLIC include ${LOGGER_H} ${UTILS_H})
+target_link_libraries(${PROJECT_NAME} PUBLIC logger utils)
 
 # 添加测试
 if(${BUILD_TEST})

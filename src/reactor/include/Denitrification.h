@@ -1,46 +1,32 @@
 #ifndef DENITRIFICATION_H
 #define DENITRIFICATION_H
-#define _USE_MATH_DEFINES
-#include "DataStructures.h"
-#include <cmath>
+#include <Eigen/Dense>
 
 class Denitrification {
   private:
-    DenificationStatus coeffecients;
-    double beta; // 曲率系数，溶解氧限制函数曲率
-    double fnox(const double &c_ox);
-    double kn1(const double &T);
+    double r_deni0;
+    double k_deni_20;
+    double Tc;
+    double theta;
+    double c_oxc;
+    double c_oxo;
+    double beta;
+    double fox(const double &c_ox);
+    double ft(const double &T);
 
   public:
+    static const int param_nums;
     Denitrification();
     ~Denitrification();
 
-    /***************************************************************
-     *  @brief    初始化反硝化过程状态
-     *  @param    rn0, 0阶反应速率
-     *  @param    knb1, 20度时的反硝化速率常数
-     *  @param    Tnc, 临界温度
-     *  @param    theta_n, 温度系数
-     *  @param    c_noxc, 临界溶解氧浓度
-     *  @param    c_noxo, 最佳溶解氧浓度
-     *  @param    beta, 曲率系数，溶解氧限制曲线 beta=1时为直线
-     *  @Sample usage:     函数的使用方法
-     **************************************************************/
-    void init(const double &rn0, const double &knb1, const double &Tnc,
-              const double &theta_n, const double &c_noxc, const double &c_noxo,
+    void init(const double &r_deni0, const double &k_deni_20, const double &Tc,
+              const double &theta, const double &c_oxc, const double &c_oxo,
               const double &beta = 1.0);
-    /***************************************************************
-     *  @brief    依据溶解氧浓度，硝态氮浓度，温度计算反硝化速率
-     *  @param    c_ox, 溶解氧浓度
-     *  @param    T, 温度
-     *  @param    c_ni, 硝态氮浓度
-     *  @Sample usage:     函数的使用方法
-     **************************************************************/
-    double rate(const double &c_ox, const double &T, const double &c_ni);
-    // 获取当前系统中的反硝化状态
-    DenificationStatus get_status();
-    // 更新当前系统中的反硝化状态
-    void update(const DenificationStatus &updated_status);
-    void update(const Eigen::VectorXd &status);
+    double rate0();
+    double k_deni(const double &c_ox, const double &T);
+    /* @brief VectorXd 用于更新反硝化系统的状态，s的数据格式为
+     * [r_deni0, k_deni_20, Tc, theta, c_oxc, c_oxo, beta]
+     */
+    void update(const Eigen::VectorXd &s);
 };
 #endif

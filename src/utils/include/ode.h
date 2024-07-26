@@ -2,9 +2,11 @@
 #define ODE_H
 #include <functional>
 
-class ODE{
-    public:
-        static double rungekutta4(std::function<double(double, double)> f, double t, double c, double h);
+class ODE {
+  public:
+    static double
+    rungekutta4(std::function<double(const double &t, const double &c)> f,
+                const double &t, const double &c, const double &dt);
 };
 
 #endif

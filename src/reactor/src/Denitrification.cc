@@ -1,54 +1,58 @@
 #include <Denitrification.h>
-
+const int Denitrification::param_nums = 7;
 Denitrification::Denitrification() {}
 Denitrification::~Denitrification() {}
 
-void Denitrification::init(const double &rn0, const double &knb1,
-                           const double &Tnc, const double &theta_n,
-                           const double &c_noxc, const double &c_noxo,
+void Denitrification::init(const double &r_deni0, const double &k_deni_20,
+                           const double &Tc, const double &theta,
+                           const double &c_oxc, const double &c_oxo,
                            const double &beta) {
-    DenificationStatus value(rn0, knb1, Tnc, theta_n, c_noxc, c_noxo);
-    coeffecients = value;
-    this->beta   = beta;
+    this->r_deni0   = r_deni0;
+    this->k_deni_20 = k_deni_20;
+    this->Tc        = Tc;
+    this->theta     = theta;
+    this->c_oxc     = c_oxc;
+    this->c_oxo     = c_oxo;
+    this->beta      = beta;
+}
+void Denitrification::update(const Eigen::VectorXd &s) {
+    if (s.size() == param_nums) {
+        r_deni0   = s(0);
+        k_deni_20 = s(1);
+        Tc        = s(2);
+        theta     = s(3);
+        c_oxc     = s(4);
+        c_oxo     = s(5);
+        beta      = s(6);
+    } else {
+        throw std::length_error(
+            "The length of vector input does not match the param_nums");
+    }
 }
 
-DenificationStatus Denitrification::get_status() { return coeffecients; }
-
-void Denitrification::update(const DenificationStatus &updated_status) {
-    coeffecients = updated_status;
-}
-
-void Denitrification::update(const Eigen::VectorXd &status){
-    DenificationStatus s;
-    s = status;
-    update(s);
-}
-
-double Denitrification::fnox(const double &c_ox) {
-    if (c_ox <= coeffecients.c_noxo) {
+double Denitrification::fox(const double &c_ox) {
+    if (c_ox <= c_oxo) {
         return 1.0;
-    } else if (c_ox < coeffecients.c_noxc) {
-        double numerator = coeffecients.c_noxc - c_ox;
+    } else if (c_ox < c_oxc) {
+        double numerator = c_oxc - c_ox;
         double denominator =
-            (coeffecients.c_noxc - coeffecients.c_noxo) +
-            (std::pow(M_E, beta) - M_E) * (c_ox - coeffecients.c_noxo);
+            (c_oxc - c_oxo) + (std::pow(M_E, beta) - M_E) * (c_ox - c_oxo);
         return numerator / denominator;
     } else {
         return 0.0;
     }
 }
 
-double Denitrification::kn1(const double &T) {
-    if (T < coeffecients.Tnc) {
+double Denitrification::ft(const double &T) {
+    if (T < Tc) {
         return 0;
     } else {
-        return coeffecients.knb1 * std::pow(coeffecients.theta_n, T - 20);
+        return std::pow(theta, T - 20);
     }
 }
 
-double Denitrification::rate(const double &c_ox, const double &T,
-                             const double &c_ni) {
-    double fnox = this->fnox(c_ox);
-    double kn1  = this->kn1(T);
-    return coeffecients.rn0 + fnox * kn1 * c_ni;
+double Denitrification::rate0() { return r_deni0; }
+
+double Denitrification::k_deni(const double &c_ox, const double &T) {
+    return k_deni_20 * fox(c_ox) * ft(T);
 }

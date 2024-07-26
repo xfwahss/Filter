@@ -7,7 +7,9 @@
  * @param dt, 向前推进dt时间步
  * @return 返回 t + dt时的变量值
  */
-double ODE::rungekutta4(std::function<double(double, double)> f, double t, double c, double dt) {
+double
+ODE::rungekutta4(std::function<double(const double &t, const double &c)> f,
+                 const double &t, const double &c, const double &dt) {
     double k1 = dt * f(t, c);
     double k2 = dt * f(t + 0.5 * dt, c + 0.5 * k1);
     double k3 = dt * f(t + 0.5 * dt, c + 0.5 * k2);

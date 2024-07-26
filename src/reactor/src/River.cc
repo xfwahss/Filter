@@ -1,38 +1,42 @@
 #include <River.h>
-#include <logger.h>
 
-int River::status_init_dims = 4;
+const int River::status_nums = 6;
 River::River(){};
 River::~River(){};
-void River::init(const double &flow, const double &c_no, const double &c_na, const double &c_nn) {
-    RiverStatus status(flow, c_no, c_na, c_nn);
-    this->status = status;
+
+void River::init(const double &flow, const double &c_rpon, const double &c_lpon,
+                 const double &c_don, const double &c_na, const double &c_nn) {
+    this->flow   = flow;
+    this->c_rpon = c_rpon;
+    this->c_lpon = c_lpon;
+    this->c_don  = c_don;
+    this->c_na   = c_na;
+    this->c_nn   = c_nn;
 }
 
-RiverStatus River::get_status() { return status; }
-
-void River::update(RiverStatus &status) { this->status = status; }
-void River::update(const Eigen::VectorXd &status) {
-    if (status.size() != status_init_dims) {
-        logger::get("river")->error("The size of Eigen::VectorXd used to update River status is not equal to {}",
-                                    status_init_dims);
-    } else{
-        RiverStatus s; 
-        s= status;
-        update(s);
-    }
-}
-
-void River::predict(const double &dt, const double &d_flow, const double &d_cno, const double &d_cna,
-                    const double &d_cnn) {
-    if (dt == 1) {
-        double next_flow = status.flow + d_flow;
-        double next_cno  = status.c_no + d_cno;
-        double next_cna  = status.c_na + d_cna;
-        double next_cnn  = status.c_nn + d_cnn;
-        RiverStatus status(next_flow, next_cno, next_cna, next_cnn);
-        update(status);
+void River::update(const Eigen::VectorXd &s) {
+    if (s.size() == status_nums) {
+        this->init(s(0), s(1), s(2), s(3), s(4), s(5));
     } else {
-        throw "Not implement for dt!=1";
+        throw std::length_error(
+            "The length of the vector input does not match the status_nums...");
     }
+}
+
+double River::flow_rate() { return flow; }
+double River::load_rpon() { return flow * c_rpon; }
+double River::load_lpon() { return flow * c_lpon; }
+double River::load_don() { return flow * c_don; }
+double River::load_na() { return flow * c_na; }
+double River::load_nn() { return flow * c_nn; }
+
+Eigen::VectorXd River::flow_status() {
+    Eigen::VectorXd s = Eigen::VectorXd::Zero(status_nums);
+    s(0)              = flow_rate();
+    s(1)              = load_rpon();
+    s(2)              = load_lpon();
+    s(3)              = load_don();
+    s(4)              = load_na();
+    s(5)              = load_nn();
+    return s;
 }

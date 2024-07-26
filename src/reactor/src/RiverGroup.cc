@@ -1,46 +1,44 @@
 #include <RiverGroup.h>
-
-RiverGroup::RiverGroup() {}
+RiverGroup::RiverGroup() : river_nums(0) {}
 RiverGroup::~RiverGroup() {
     std::map<int, River *>::iterator iter = rivers.begin();
     while (iter != rivers.end()) {
         delete iter->second;
-        iter-> second = nullptr;
+        iter->second = nullptr;
         iter++;
     }
 }
 
-void RiverGroup::add_river(const int& id) {
-    rivers[id] = new River();
-    rivers[id] ->init(0, 0, 0, 0);
+void RiverGroup::add_river() {
+    rivers[river_nums] = new River();
+    ++river_nums;
 }
 
-Eigen::VectorXd RiverGroup::get_status() { return status; };
+double RiverGroup::get_river_nums() { return river_nums; }
 
-void RiverGroup::update(Eigen::VectorXd rivers_status) {
-    std::map<int, River *>::const_iterator iter = rivers.begin();
-    int index                                           = 0;
-    while (iter != rivers.end()) {
-        Eigen::VectorXd single_s = rivers_status.segment(index * RiverStatus::size, RiverStatus::size);
-        iter->second->update(single_s);
-        ++iter;
-        ++index;
+void RiverGroup::update(const Eigen::VectorXd &s) {
+    if (s.size() == river_nums * River::status_nums) {
+        std::map<int, River *>::const_iterator iter = rivers.begin();
+        int index                                   = 0;
+        while (iter != rivers.end()) {
+            Eigen::VectorXd ss =
+                s.segment(index * River::status_nums, River::status_nums);
+            iter->second->update(ss);
+            ++iter;
+            ++index;
+        }
+    } else {
+        throw std::length_error(
+            "The length of vectorxd input does not match the rivers' need...");
     }
-    Eigen::VectorXd status = sum();
-    this->status           = status;
 };
 
-
-Eigen::VectorXd RiverGroup::sum() {
-    Eigen::VectorXd total_rivers = Eigen::VectorXd::Zero(4);
+Eigen::VectorXd RiverGroup::flow_status() {
+    Eigen::VectorXd flow_status = Eigen::VectorXd::Zero(River::status_nums);
     std::map<int, River *>::const_iterator iter = rivers.begin();
     while (iter != rivers.end()) {
-        RiverStatus s = iter->second->get_status();
-        total_rivers(0) += s.flow;
-        total_rivers(1) += s.load_organic;
-        total_rivers(2) += s.load_ammonia;
-        total_rivers(3) += s.load_nitrate;
+        flow_status += iter->second->flow_status();
         ++iter;
     }
-    return total_rivers;
+    return flow_status;
 };
