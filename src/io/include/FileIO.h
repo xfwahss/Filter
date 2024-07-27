@@ -1,7 +1,10 @@
 #ifndef FILE_IO_H
 #define FILE_IO_H
+#include <filesystem>
 #include <string>
+
 class FileIO {
+
   private:
     std::string filename;
 
@@ -9,6 +12,8 @@ class FileIO {
     std::string get_filename();
 
   public:
+    static void copyFile(const std::filesystem::path &src,
+                         const std::filesystem::path &dest);
     FileIO(const std::string &filename, const std::string &mode = "r");
     ~FileIO();
     // 判断读取到的行是不是注释
