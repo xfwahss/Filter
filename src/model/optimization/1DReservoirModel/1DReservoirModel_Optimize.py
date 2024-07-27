@@ -53,9 +53,10 @@ def rmse(value_model:np.array, value_obs:np.array):
     return rmse_value
 
 obs = pd.read_excel("D:/Gitlocal/Filter/test/data/1DReservoirModel_Origin.xlsx", sheet_name="Res_Avg")
-Res_Cno_obs = obs["Res_Cno"].values
-Res_Cna_obs = obs["Res_Cna"].values
-Res_Cnn_obs = obs["Res_Cnn"].values
+simu_range = slice(0, 732)
+Res_Cno_obs = obs["Res_Cno"].values[simu_range]
+Res_Cna_obs = obs["Res_Cna"].values[simu_range]
+Res_Cnn_obs = obs["Res_Cnn"].values[simu_range]
 
 def calc_rmse(i, C_ro0, C_ko1, C_ra0, C_kab1, C_foxmin, C_c_oxc, C_c_oxo, C_theta_a,
                 C_T_c, C_rn0, C_knb1, C_Tnc, C_theta_n, C_c_noxc, C_c_noxo):
@@ -96,8 +97,8 @@ class Model_Train(ea.Problem):  # 继承Problem父类
         maxormins = [1, 1, 1]  # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
         Dim = 15  # 初始化Dim（决策变量维数）
         varTypes = [0] * Dim  # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
-        lb = [1e-12, 1e-12, 1e-12, 1e-12, 0, 0, 0, 1, -10,   1e-12, 1e-12, -10, 1, 0, 0]  # 决策变量下界
-        ub = [1e-5, 1e-3, 1e-5, 1e-3, 1, 12, 12, 10, 20,     1e-5,  1e-3,  20,  10, 12, 12]  # 决策变量上界
+        lb = [1e-12, 1e-12,   1e-12, 1e-12, 0, 0, 0, 1, -10,   1e-12, 1e-12, -10, 1, 0, 0]  # 决策变量下界
+        ub = [1e-9, 1e-3,     1e-9, 1e-3, 1, 12, 12, 10, 20,     1e-9,  1e-3,  20,  10, 12, 12]  # 决策变量上界
         lbin = [1] * Dim  # 决策变量下边界（0表示不包含该变量的下边界，1表示包含）
         ubin = [1] * Dim  # 决策变量上边界（0表示不包含该变量的上边界，1表示包含）
         # 调用父类构造方法完成实例化

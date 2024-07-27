@@ -78,7 +78,7 @@ def run_model(exe, toggle=True):
     os.chdir(cwd)
 
 
-value_nums = 1000
+value_nums = 200
 set_dt = 10 / value_nums
 def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
     writer = pd.ExcelWriter(path)
@@ -90,7 +90,7 @@ def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
         'size':1000,
         'status_dims':4,
         'obs_dims':1,
-        'tau': 10,
+        'tau': 0.16,
     }
     params=pd.DataFrame({'key':params.keys(), 'value':params.values()})
     params.to_excel(writer, sheet_name='Params', index=False, header=False)
@@ -124,10 +124,10 @@ def write_input(Obs, path='test/data/Degradation_in.xlsx', R=0.05):
 
     # 过程误差
     Q = {
-        'x': 0.01,
-        'v': 0.001,
-        'dv': 0.001,
-        'ddv': 0.001,
+        'x': 0.0,
+        'v': 0.0,
+        'dv': 0.00,
+        'ddv': 0.00,
     }
     Q = pd.DataFrame({'key':Q.keys(), 'value':Q.values()})
     Q.to_excel(writer, sheet_name='Q', index=False, header=False)
@@ -222,8 +222,8 @@ if __name__ == '__main__':
     axes['C'].plot(t_arr, c_obs, label='观测值', lw=0, marker='o', markersize=1, color='g')
     axes['C'].plot(t_arr, c_simu_min, label='最佳拟合(真实)', lw=1, color='b')
     axes['C'].plot(t_arr, c_simu_obs, label='最佳拟合(观测)', lw=1, color='orange')
-    axes['C'].plot(t_arr[1:], c_filter, label='同化值', lw=1, color='k')
-    axes['C'].plot(t_arr[1:], prior_c, label='先验预测', lw=1, color='k', linestyle='dashed')
+    axes['C'].plot(t_arr[0:-1], c_filter, label='同化值', lw=1, color='k')
+    axes['C'].plot(t_arr[0:-1], prior_c, label='先验预测', lw=1, color='k', linestyle='dashed')
     axes['C'].text(0.05, 0.1, f"$MAPE_{{min}}^{{real}}={re_min_real:.2f}\\%$", fontsize=6, transform=axes['C'].transAxes)
     axes['C'].text(0.05, 0.2, f"$MAPE_{{min}}^{{obs}}={re_min_obs:.2f}\\%$", fontsize=6, transform=axes['C'].transAxes)
     axes['C'].text(0.05, 0.3, f"$MAPE_{{min}}^{{filter}}={re_filter:.2f}\\%$", fontsize=6, transform=axes['C'].transAxes)
@@ -234,18 +234,18 @@ if __name__ == '__main__':
     axes['K'].plot(t_arr, k_arr, label='真实值', lw=1, color='r')
     axes['K'].plot(t_arr, k_for_min, label='最佳拟合值', lw=1, color='b')
     # axes['K'].plot(t_arr[1:], k_calc, label='差分估算值', lw=0, color='g', marker='o', markersize=1)
-    axes['K'].plot(t_arr[1:], k_filter, label='同化跟踪值', lw=1, color='k')
-    axes['dk'].plot(t_arr[1:], dk, lw=1)
-    axes['ddk'].plot(t_arr[1:], ddk, lw=1)
+    axes['K'].plot(t_arr[0:-1], k_filter, label='同化跟踪值', lw=1, color='k')
+    axes['dk'].plot(t_arr[0:-1], dk, lw=1)
+    axes['ddk'].plot(t_arr[0:-1], ddk, lw=1)
     # axes['K'].set_ylim(1, 4)
     # axes['K'].set_xlim(-1, 11)
     # axes['K'].set_xticks([0, 2, 4, 6, 8, 10])
     axes['K'].legend(fontsize=8, frameon=False)
 
-    axes['C_err'].plot(t_arr[1:], c_variance, color='k', lw=1)
+    axes['C_err'].plot(t_arr[0:-1], c_variance, color='k', lw=1)
 
-    axes['K_err'].plot(t_arr[1:], k_variance, color='k', lw=1)
+    axes['K_err'].plot(t_arr[0:-1], k_variance, color='k', lw=1)
     print(model_tool.nse(c_simu_min, c_real))
     print(model_tool.nse(c_simu_obs, c_real))
-    print(model_tool.nse(c_filter, c_real[1:]))
+    print(model_tool.nse(c_filter, c_real[0:-1]))
     fig.show()

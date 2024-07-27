@@ -5,23 +5,23 @@ import model_tool
 import subprocess
 
 if __name__ == "__main__":
-    ro0 = 1e-12    # 最大1e-9
-    ko1 = 1.75e-5
+    ro0 = 543 * 1e-12    # 最大1e-9
+    ko1 = 369 * 1e-8  # 最大1e-5
 
-    ra0=1e-11 # 最大1e-9
-    kab1 = 2.98e-4
-    foxmin = 0.210
-    c_oxc = 3.968
-    c_oxo = 8.67
-    theta_a = 5.558
-    T_c = -1.13
+    ra0=123 * 1e-12 # 最大1e-9
+    kab1 = 37399 * 1e-8 # 搜索1e-8~1
+    foxmin = 35 * 0.01
+    c_oxc = 38 * 0.1
+    c_oxo = 58 * 0.1
+    theta_a = 23 * 0.1
+    T_c = 13 * 0.1
 
-    rn0 = 2e-8 # 最大1e-8
-    knb1 = 0.0003
-    Tnc = 5.64
-    theta_n = 7.459
-    c_noxc = 7.8768
-    c_noxo = 5.719
+    rn0 = 2113 * 1e-12 # 最大1e-8
+    knb1 = 1739863 * 1e-8  # knb1 < 0.1 最好大于 1e-8
+    Tnc = -56 * 0.1
+    theta_n = 29 * 0.1
+    c_noxc = 102 * 0.1
+    c_noxo = 70 * 0.1
 
     subprocess.run(["build/bin/1DReservoirModel", "-i", "test/data/1DReservoirModel_Origin.xlsx",
                     "-o", "test/output/1DReservoirModel_Origin_output.xlsx",
@@ -58,7 +58,8 @@ if __name__ == "__main__":
     Res_Cnn_obs = obs["Res_Cnn"].values
 
     init_step = 0
-    steps = 2193
+    # steps = 2193
+    steps = 366
     fig = Figure(16, 14.5)
     fig.add_axes_cm("water level", 1.5, 0.5, 14, 2.5, "left upper")
     fig.add_axes_cm("Org-N", 1.5, 4., 14, 2.5, "left upper")

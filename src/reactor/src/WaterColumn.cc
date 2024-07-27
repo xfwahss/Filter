@@ -59,7 +59,7 @@ double WaterColumn::step_volumn(const double &seconds, const double &flow_in,
                                 const double &flow_out) {
     // 与volumn和t无关，因此不使用runge-kutta法
     double predict_volumn = volumn + (flow_in - flow_out) * seconds * 1e-8;
-    return volumn;
+    return predict_volumn;
 }
 
 double WaterColumn::step_lpon(const double &seconds, const double &load_in,

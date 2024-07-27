@@ -11,9 +11,14 @@ def mape(value_model:np.array, value_obs:np.array):
     Returns:  
     mape (float): Mean Absolute Percentage Error  
     """  
+
+    value_obs = value_obs.astype(np.float64)
+    value_model = value_model.astype(np.float64)
+
     all_v = np.vstack([value_model, value_obs])
     has_nan = np.isnan(all_v).any(axis=0)
     filtered_v = all_v[:, ~has_nan]
+
     value_model = filtered_v[0, :]
     value_obs = filtered_v[1, :]
     mape_value = np.mean(np.abs(value_obs - value_model)/value_obs) * 100
@@ -32,6 +37,9 @@ def rmse(value_model:np.array, value_obs:np.array):
     """  
     # 确保 obs 和 sim 的长度相同  
     assert value_obs.shape == value_model.shape, "obs and sim must have the same shape"  
+
+    value_obs = value_obs.astype(np.float64)
+    value_model = value_model.astype(np.float64)
 
     all_v = np.vstack([value_model, value_obs])
     has_nan = np.isnan(all_v).any(axis=0)
@@ -55,6 +63,9 @@ def nse(value_model:np.array, value_obs:np.array):
     """  
     # 确保 obs 和 sim 的长度相同  
     assert value_model.shape == value_obs.shape, "obs and sim must have the same shape"  
+
+    value_obs = value_obs.astype(np.float64)
+    value_model = value_model.astype(np.float64)
 
 
     all_v = np.vstack([value_model, value_obs])
