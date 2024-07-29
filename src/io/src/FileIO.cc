@@ -53,7 +53,8 @@ void FileIO::copyFile(const std::filesystem::path &src,
     }
     try {
         std::filesystem::copy_file(
-            src, dest, std::filesystem::copy_options::overwrite_existing);
+            // src, dest, std::filesystem::copy_options::overwrite_existing);
+            src, dest, std::filesystem::copy_options::skip_existing);
         std::cout << "File copied successfully." << std::endl;
     } catch (std::filesystem::filesystem_error &e) {
         std::cerr << "Failed to copy file: " << e.what() << std::endl;

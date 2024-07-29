@@ -239,9 +239,10 @@ std::string copyfile_and_write_params(
         s_nrp,      s_nlp,      alpha_rpon, alpha_lpon, h0};
     int i = 0;
     for (std::optional<double> value : arr) {
+        logger::get("0DReservoirModel")->info("Write param: {}", i + 1);
         if (value.has_value()) {
             input.write_cell(*value, sheetname, row_i[i], 3);
-            for (int j = 2; j < 2195; j++) {
+            for (int j = 2; j < 400; j++) {
                 input.write_cell(*value, names[i], j, write_column_i[i]);
             }
         }

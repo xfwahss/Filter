@@ -15,8 +15,8 @@ class Ammonification {
     static const int param_nums;
     Ammonification()  = default;
     ~Ammonification() = default;
-    void init(const double &k_lpon_20, const double &theta_lpon,
-              const double &k_rpon_20, const double &theta_rpon,
+    void init(const double &k_rpon_20, const double &theta_rpon,
+              const double &k_lpon_20, const double &theta_lpon,
               const double &k_don_20, const double &theta_don);
     // 更新系统参数
     void update(const Eigen::VectorXd &s);

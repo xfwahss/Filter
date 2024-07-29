@@ -10,9 +10,9 @@
 double
 ODE::rungekutta4(std::function<double(const double &t, const double &c)> f,
                  const double &t, const double &c, const double &dt) {
-    double k1 = dt * f(t, c);
-    double k2 = dt * f(t + 0.5 * dt, c + 0.5 * k1);
-    double k3 = dt * f(t + 0.5 * dt, c + 0.5 * k2);
-    double k4 = dt * f(t + dt, c + k3);
-    return c + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0;
+    double k1 =  f(t, c);
+    double k2 =  f(t + 0.5 * dt, c + 0.5 * k1 * dt);
+    double k3 =  f(t + 0.5 * dt, c + 0.5 * k2 * dt);
+    double k4 =  f(t + dt, c + k3 * dt);
+    return c + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0 * dt;
 }

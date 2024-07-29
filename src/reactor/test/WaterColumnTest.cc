@@ -3,14 +3,18 @@
 #include <Nitrification.h>
 #include <WaterColumn.h>
 #include <iostream>
+#include <ode.h>
 
 double wl_to_volume(const double &wl) { return 10 * wl; }
 double wl_to_depth(const double &wl) { return wl; }
 double volume_to_wl(const double &volumn) { return volumn / 10; }
+double test(const double &t, const double& c){
+    return -100000 * c;
+}
 int main() {
     WaterColumn wc(wl_to_volume, wl_to_depth, volume_to_wl);
     Eigen::VectorXd init_s(WaterColumn::status_nums);
-    init_s << 2, 1, 1, 1, 1, 1, 15, 10;
+    init_s << 2, 1, 1, 1, 1, 1, 35, 10;
     Eigen::VectorXd flow_bnd(WaterColumn::flow_bnd_nums);
     flow_bnd << 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1;
     Eigen::VectorXd sediment_bnd(WaterColumn::sediment_bnd_nums);
@@ -20,10 +24,12 @@ int main() {
     Ammonification ammon;
     Nitrification nitri;
     Denitrification deni;
-    ammon.init(0.1, 1, 0.1, 1, 0.1, 1);
+    ammon.init(100000, 1, 0.1, 1, 0.1, 1);
     nitri.init(0.1, 0.1, 0.5, 2, 10, 1, 10, 0);
     deni.init(0.1, 0.1, 10, 1, 8, 2, 1);
     Eigen::VectorXd next_s = wc.predict(init_s, 86400, flow_bnd, sediment_bnd,
                                         settle_params, ammon, nitri, deni);
-    std::cout << next_s.transpose();
+    std::cout << next_s.transpose() << std::endl;
+    std::cout << ODE::rungekutta4(test, 0, 1, 0.00001)<< std::endl;
+    std::cout << std::exp(-1) << std::endl;
 }
