@@ -50,9 +50,9 @@ if __name__ == "__main__":
             [
                 "build/bin/0DReservoirModel",
                 "-i",
-                "test/data/0DReservoirModel.xlsx",
+                "test/data/0DReservoirModelCalibrate.xlsx",
                 "-o",
-                "test/output/0DReservoirModel_output.xlsx",
+                "test/output/0DReservoirModelCalibrate_output.xlsx",
                 "--id",
                 f"{idn}",
                 "--k_rpon",
@@ -120,10 +120,10 @@ if __name__ == "__main__":
     print("Plot Figure")
 
     simu = pd.read_excel(
-        "test/output/0DReservoirModel_output.xlsx", sheet_name="Simulation"
+        "test/output/0DReservoirModelCalibrate_output.xlsx", sheet_name="Simulation"
     )
     obs = pd.read_excel(
-        f"test/temp/{idn}0DReservoirModel.xlsx", sheet_name="ResAverage"
+        f"test/temp/{idn}0DReservoirModelCalibrate.xlsx", sheet_name="ResAverage"
     )
 
     t = obs["Date"].values
@@ -141,8 +141,9 @@ if __name__ == "__main__":
     Res_Cno_obs = obs["Res_Cno"].values
     Res_Cna_obs = obs["Res_Cna"].values
     Res_Cnn_obs = obs["Res_Cnn"].values
-    Res_T_obs = obs["Res_T"].values
-    Res_DO_obs = obs["Res_DO"].values
+    Res_T_obs = obs["Res_T_True"].values
+    Res_DO_obs = obs["Res_DO_True"].values
+
 
 
     init_step = 0
