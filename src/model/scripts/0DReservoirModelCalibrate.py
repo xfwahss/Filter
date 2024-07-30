@@ -1,14 +1,18 @@
+import sys
+sys.path.append("D:/Gitlocal/plotstyles")
 from plotstyles.figure import Figure
 import pandas as pd
 from plotstyles.fonts import global_fonts
 import model_tool
 import subprocess
 import time
+from matplotlib import pyplot as plt
+plt.rcParams["font.size"] = 7
 
 if __name__ == "__main__":
     start_time = time.time()
     b_ndo_flux = 0.030 # 必须有释放，要不然浓度不合理，先把反应置0找一个合适的释放通量
-    b_amm_flux = 0
+    b_amm_flux = 0.000
     b_nit_flux = 0
 
     s_nrp = 0.01
@@ -25,14 +29,14 @@ if __name__ == "__main__":
     k_don = 0.05
     theta_don = 1.1
 
-    rnit0 = 0.0001
-    knit20 = 0.01
-    foxmin = 0.1
-    c_oxc_nit = 1
-    c_oxo_nit = 10
-    theta_nit = 1.5
-    T_c_nit = 5
-    alpha = 0.3
+    rnit0 = 0.0005
+    knit20 = 0.005
+    foxmin = 0.5 
+    c_oxc_nit = 4
+    c_oxo_nit = 6.5
+    theta_nit = 1.09
+    T_c_nit = -0.3
+    alpha = 0
 
     rdeni0 = 0.001
     k_deni_20 = 0.1
@@ -149,13 +153,13 @@ if __name__ == "__main__":
     init_step = 0
     # steps = 2193
     steps = 366
-    fig = Figure(16, 16)
-    fig.add_axes_cm("water level", 1.5, 0.5, 14, 2, "left upper")
-    fig.add_axes_cm("Org-N", 1.5, 3.0, 14, 2, "left upper")
-    fig.add_axes_cm("NH-N", 1.5, 5.5, 14, 2, "left upper")
-    fig.add_axes_cm("NO-N", 1.5, 8.0, 14, 2, "left upper")
-    fig.add_axes_cm("T", 1.5, 10.5, 14, 2, "left upper")
-    fig.add_axes_cm("DO", 1.5, 13.0, 14, 2, "left upper")
+    fig = Figure(10, 16)
+    fig.add_axes_cm("water level", 1.5, 0.5, 8, 2, "left upper")
+    fig.add_axes_cm("Org-N", 1.5, 3.0, 8, 2, "left upper")
+    fig.add_axes_cm("NH-N", 1.5, 5.5, 8, 2, "left upper")
+    fig.add_axes_cm("NO-N", 1.5, 8.0, 8, 2, "left upper")
+    fig.add_axes_cm("T", 1.5, 10.5, 8, 2, "left upper")
+    fig.add_axes_cm("DO", 1.5, 13.0, 8, 2, "left upper")
     axes = fig.axes_dict
 
     simu_range = slice(init_step, init_step + steps)
