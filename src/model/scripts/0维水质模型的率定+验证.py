@@ -1,3 +1,5 @@
+import sys
+sys.path.append("D:/Gitlocal/plotstyles")
 from plotstyles import styles
 from plotstyles import figure
 import pandas as pd
