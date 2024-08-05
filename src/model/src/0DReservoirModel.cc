@@ -242,7 +242,7 @@ std::string copyfile_and_write_params(
         logger::get("0DReservoirModel")->info("Write param: {}", i + 1);
         if (value.has_value()) {
             input.write_cell(*value, sheetname, row_i[i], 3);
-            for (int j = 2; j < 400; j++) {
+            for (int j = 2; j < 369; j++) {
                 input.write_cell(*value, names[i], j, write_column_i[i]);
             }
         }

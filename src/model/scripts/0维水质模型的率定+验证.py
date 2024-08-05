@@ -6,6 +6,7 @@ import time
 from functools import wraps
 from datetime import datetime
 from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
+import numpy as np
 
 styles.use(["wr"])
 params_dict = {
@@ -70,6 +71,39 @@ def run_model(exe_path, filein, fileout, params: dict, id=0, toggle=True):
     else:
         return
 
+
+def skip_na(obs, simu):
+    comb = np.hstack([obs.reshape(-1, 1), simu.reshape(-1, 1)])
+    comb_skipna = comb[~np.isnan(comb).any(axis=1)]
+    return comb_skipna[:, 0], comb_skipna[:, 1]
+
+
+def nse(obs, simu):
+    obs, simu = skip_na(obs, simu)
+    obs_mean = np.mean(obs)
+    # 计算残差平方和（RSS）
+    residuals = simu - obs
+    rss = np.sum(residuals**2)
+    # 计算观测值与观测值均值之差的平方和（TSS）
+    tss = np.sum((obs - obs_mean) ** 2)
+    # 防止除以零（如果 TSS 为零，则 NSE 未定义）
+    if tss == 0:
+        return float("nan")  # 返回 NaN 表示未定义
+    # 计算 NSE
+    nse_val = 1 - (rss / tss)
+    return nse_val
+def rmse(obs, simu):
+    obs, simu = skip_na(obs, simu)
+    differences = simu - obs
+    differences_squared = differences ** 2
+    mean_of_differences_squared = differences_squared.mean()
+    rmse_val = np.sqrt(mean_of_differences_squared)
+    return rmse_val
+
+def mape(obs, simu):
+    obs, simu = skip_na(obs, simu)
+    mape = np.mean(np.abs((obs - simu) / obs)) * 100  
+    return mape  
 
 # water research 的双栏排版19cm，1.5是 14cm， 单栏排版 9 cm
 # 正文字号最小7pt
@@ -142,48 +176,56 @@ def create_fig(
 
     fig.axes_dict["FACD"].set_ylim(4, 12)
     fig.axes_dict["FAVD"].set_ylim(4, 12)
-    fig.axes_dict['FACD'].tick_params(axis='y', color='b')
-    fig.axes_dict['FACD'].spines['left'].set_color('b')
-    for label in fig.axes_dict['FACD'].get_yticklabels():
-        label.set_color('b')
+    fig.axes_dict["FACD"].tick_params(axis="y", color="b")
+    fig.axes_dict["FACD"].spines["left"].set_color("b")
+    for label in fig.axes_dict["FACD"].get_yticklabels():
+        label.set_color("b")
     fig.axes_dict["FACT"].set_ylim(-4, 36)
     fig.axes_dict["FAVT"].set_ylim(-4, 36)
-    fig.axes_dict['FACT'].tick_params(axis='y', color='r')
-    fig.axes_dict['FACT'].spines['left'].set_color('r')
-    for label in fig.axes_dict['FACT'].get_yticklabels():
-        label.set_color('r')
+    fig.axes_dict["FACT"].tick_params(axis="y", color="r")
+    fig.axes_dict["FACT"].spines["left"].set_color("r")
+    for label in fig.axes_dict["FACT"].get_yticklabels():
+        label.set_color("r")
 
-    fig.axes_dict['WLC'].set_ylim(130, 145)
-    fig.axes_dict['WLV'].set_ylim(130, 145)
-    fig.axes_dict['ONC'].set_ylim(0, 0.40)
-    fig.axes_dict['ONV'].set_ylim(0, 0.40)
-    fig.axes_dict['ANC'].set_ylim(0, 0.50)
-    fig.axes_dict['ANV'].set_ylim(0, 0.50)
+    fig.axes_dict["WLC"].set_ylim(130, 145)
+    fig.axes_dict["WLV"].set_ylim(130, 145)
+    fig.axes_dict["ONC"].set_ylim(0, 0.40)
+    fig.axes_dict["ONV"].set_ylim(0, 0.40)
+    fig.axes_dict["ANC"].set_ylim(0, 0.50)
+    fig.axes_dict["ANV"].set_ylim(0, 0.50)
 
-    fig.axes_dict['NNC'].set_ylim(0.00, 1.50)
-    fig.axes_dict['NNV'].set_ylim(0.00, 1.50)
+    fig.axes_dict["NNC"].set_ylim(0.00, 1.50)
+    fig.axes_dict["NNV"].set_ylim(0.00, 1.50)
 
     for key in ["FAVT", "WLV", "ONV", "ANV", "NNV", "FAVD"]:
         fig.axes_dict[key].yaxis.set_visible(False)
         fig.axes_dict[key].spines["left"].set_visible(False)
         fig.axes_dict[key].set_xlim(datetime(2016, 1, 1), datetime(2016, 12, 31))
 
-        fig.axes_dict[key].set_xticks(pd.date_range('2015-12-31', '2016-12-31', freq='M'))
+        fig.axes_dict[key].set_xticks(
+            pd.date_range("2015-12-31", "2016-12-31", freq="M")
+        )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
-        fig.axes_dict[key].set_xticklabels(fig.axes_dict[key].get_xticklabels(), ha='right', rotation=45)
+        fig.axes_dict[key].set_xticklabels(
+            fig.axes_dict[key].get_xticklabels(), ha="right", rotation=45
+        )
 
     for key in ["FACT", "WLC", "ONC", "ANC", "NNC", "FACD"]:
         fig.axes_dict[key].yaxis.set_major_formatter("{x:.2f}")
         fig.axes_dict[key].spines["right"].set_visible(False)
         fig.axes_dict[key].set_xlim(datetime(2014, 12, 31), datetime(2015, 12, 31))
 
-        fig.axes_dict[key].set_xticks(pd.date_range('2014-12-31', '2015-12-31', freq='M'))
+        fig.axes_dict[key].set_xticks(
+            pd.date_range("2014-12-31", "2015-12-31", freq="M")
+        )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
-        fig.axes_dict[key].set_xticklabels(fig.axes_dict[key].get_xticklabels(), ha='right', rotation=45)
-    fig.axes_dict['FACD'].yaxis.set_major_formatter("{x:.0f}")
-    fig.axes_dict['FACT'].yaxis.set_major_formatter("{x:.0f}")
-    fig.axes_dict['WLC'].yaxis.set_major_formatter("{x:.1f}")
-    
+        fig.axes_dict[key].set_xticklabels(
+            fig.axes_dict[key].get_xticklabels(), ha="right", rotation=45
+        )
+    fig.axes_dict["FACD"].yaxis.set_major_formatter("{x:.0f}")
+    fig.axes_dict["FACT"].yaxis.set_major_formatter("{x:.0f}")
+    fig.axes_dict["WLC"].yaxis.set_major_formatter("{x:.1f}")
+
     for key in ["FACT", "FAVT", "WLC", "WLV", "ONC", "ONV", "ANC", "ANV"]:
         fig.axes_dict[key].set_xticklabels([])
     axes_aligned = [fig.axes_dict[i] for i in ["FACD", "WLC", "ONC", "ANC", "NNC"]]
@@ -262,7 +304,6 @@ def create_fig(
         linestyle="dashed",
         color="k",
     )
-    fig.axes_dict["RWL"].set_aspect(1)
     fig.axes_dict["RON"].plot(
         [0, 1],
         [0, 1],
@@ -271,7 +312,6 @@ def create_fig(
         linestyle="dashed",
         color="k",
     )
-    fig.axes_dict["RON"].set_aspect(1)
     fig.axes_dict["RAN"].plot(
         [0, 1],
         [0, 1],
@@ -280,7 +320,6 @@ def create_fig(
         linestyle="dashed",
         color="k",
     )
-    fig.axes_dict["RAN"].set_aspect(1)
     fig.axes_dict["RNN"].plot(
         [0, 1],
         [0, 1],
@@ -289,16 +328,18 @@ def create_fig(
         linestyle="dashed",
         color="k",
     )
-    fig.axes_dict["RNN"].set_aspect(1)
     return fig, fig.axes_dict
 
 
 def read_observation():
     obs_dataset = pd.read_excel(
-        "test/data/0维水质模型数据未插值.xlsx", sheet_name="ResAverage"
+        "test/data/2-0维水质模型数据未插值+环境因子样条曲线插值+剔除异常值平均.xlsx",
+        sheet_name="ResAverage",
     )
-    obs_wl, obs_T, obs_DO, obs_Con, obs_Can, obs_Cnn, index = (
+    obs_wl, obs_T_init, obs_DO_init, obs_T, obs_DO, obs_Con, obs_Can, obs_Cnn, index = (
         obs_dataset["Water_Level"],
+        obs_dataset["Res_T_init"],
+        obs_dataset["Res_DO_init"],
         obs_dataset["Res_T"],
         obs_dataset["Res_DO"],
         obs_dataset["Res_Cno"],
@@ -307,54 +348,191 @@ def read_observation():
         obs_dataset["Date"],
     )
     calibrate_range = slice(0, 365, 1)
-    validate_range = slice(366, 731, 1)
+    validate_range = slice(365, 731, 1)
     obs_calibrate = [
         obs_wl[calibrate_range].values,
-        obs_T[calibrate_range].values,
-        obs_DO[calibrate_range].values,
+        obs_T_init[calibrate_range].values,
+        obs_DO_init[calibrate_range].values,
         obs_Con[calibrate_range].values,
         obs_Can[calibrate_range].values,
         obs_Cnn[calibrate_range].values,
+        obs_T[calibrate_range].values,
+        obs_DO[calibrate_range].values,
         index[calibrate_range].values,
     ]
     obs_validate = [
         obs_wl[validate_range].values,
-        obs_T[validate_range].values,
-        obs_DO[validate_range].values,
+        obs_T_init[validate_range].values,
+        obs_DO_init[validate_range].values,
         obs_Con[validate_range].values,
         obs_Can[validate_range].values,
         obs_Cnn[validate_range].values,
+        obs_T[validate_range].values,
+        obs_DO[validate_range].values,
         index[validate_range].values,
     ]
     return obs_calibrate, obs_validate
 
 
 def read_simulation():
-    pass
+    simu_c = pd.read_excel("test/output/0DRMC_out.xlsx", sheet_name="Simulation")
+    simu_v = pd.read_excel("test/output/0DRMV_out.xlsx", sheet_name="Simulation")
+    calibrate_range = slice(0, 365, 1)
+    validate_range = slice(0, 366, 1)
+    wl_simu = simu_c.iloc[:, 0].values
+    c_rpon = simu_c.iloc[:, 1].values
+    c_lpon = simu_c.iloc[:, 2].values
+    c_on = simu_c.iloc[:, 3].values + c_rpon + c_lpon
+    c_na = simu_c.iloc[:, 4].values
+    c_nn = simu_c.iloc[:, 5].values
+    simu_calibrate = [
+        wl_simu[calibrate_range],
+        c_rpon[calibrate_range],
+        c_lpon[calibrate_range],
+        c_on[calibrate_range],
+        c_na[calibrate_range],
+        c_nn[calibrate_range],
+    ]
+
+    wl_v = simu_v.iloc[:, 0][validate_range].values
+    rpon_v = simu_v.iloc[:, 1][validate_range].values
+    lpon_v = simu_v.iloc[:, 2][validate_range].values
+    on_v = simu_v.iloc[:, 3][validate_range].values + rpon_v + lpon_v
+    na_v = simu_v.iloc[:, 4][validate_range].values
+    nn_v = simu_v.iloc[:, 5][validate_range].values
+    simu_validate = [wl_v, rpon_v, lpon_v, on_v, na_v, nn_v]
+    return simu_calibrate, simu_validate
 
 
-def read_interporlate():
-    pass
-
-
-def visualize(axes, obs_calibrate, obs_validate):
+def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     # 观测数据
-    axes['FACT'].plot(obs_calibrate[-1], obs_calibrate[1], 'ro', markersize=2)
-    obs_t, = axes['FAVT'].plot(obs_validate[-1], obs_validate[1], 'ro', markersize=2,label='Observed temperature $(^\circC)$')
-    axes['FACD'].plot(obs_calibrate[-1], obs_calibrate[2], 'bs', markersize=2)
-    obs_do, = axes['FAVD'].plot(obs_validate[-1], obs_validate[2], 'bs', markersize=2, label='Observed dissolved oxygen $(mg/L)$')
-    obs_t = axes['FAVD'].legend([obs_t, obs_do], ['Observed T $(^\circ C)$', 'Observed DO $(mg/L)$'], frameon=True, loc='lower center', fontsize=5, edgecolor='k')
+    axes["FACT"].plot(obs_calibrate[-1], obs_calibrate[1], "ro", markersize=2)
+    axes["FACT"].plot(obs_calibrate[-1], obs_calibrate[-3], "r--")
+    (obs_t,) = axes["FAVT"].plot(obs_validate[-1], obs_validate[1], "ro", markersize=2)
+    (int_t,) = axes["FAVT"].plot(obs_validate[-1], obs_validate[-3], "r--")
+
+    axes["FACD"].plot(obs_calibrate[-1], obs_calibrate[2], "bs", markersize=2)
+    axes["FACD"].plot(obs_calibrate[-1], obs_calibrate[-2], "b--")
+    (obs_do,) = axes["FAVD"].plot(obs_validate[-1], obs_validate[2], "bs", markersize=2)
+    (int_do,) = axes["FAVD"].plot(obs_validate[-1], obs_validate[-2], "b--")
+    obs_t = axes["FAVD"].legend(
+        [obs_t, int_t, obs_do, int_do],
+        ["T $(^\circ C)$", "Interpolation", "DO $(mg/L)$", "Interpolation"],
+        frameon=False,
+        loc="lower center",
+        fontsize=5,
+        edgecolor="k",
+        ncols=2,
+        handlelength=1,
+        columnspacing=0.3,
+        handleheight=0.3,
+        handletextpad=0.3,
+    )
     obs_t.legendPatch.set_linewidth(0.3)
 
-    axes['WLC'].plot(obs_calibrate[-1], obs_calibrate[0], linewidth=0.75, color='r', label='Observed')
-    axes['WLV'].plot(obs_validate[-1], obs_validate[0], linewidth=0.75, color='r', label='Observed')
-    axes['ONC'].plot(obs_calibrate[-1], obs_calibrate[3], 'ro', markersize=2)
-    axes['ONV'].plot(obs_validate[-1], obs_validate[3], 'ro', markersize=2)
-    axes['ANC'].plot(obs_calibrate[-1], obs_calibrate[4], 'ro', markersize=2)
-    axes['ANV'].plot(obs_validate[-1], obs_validate[4], 'ro', markersize=2)
-    axes['NNC'].plot(obs_calibrate[-1], obs_calibrate[5], 'ro', markersize=2)
-    axes['NNV'].plot(obs_validate[-1], obs_validate[5], 'ro', markersize=2)
-    
+    # 模型对比
+    axes["WLC"].plot(
+        obs_calibrate[-1], obs_calibrate[0], linewidth=0.75, color="r", label="Observed"
+    )
+    axes["WLV"].plot(
+        obs_validate[-1], obs_validate[0], linewidth=0.75, color="r", label="Observed"
+    )
+    rmse_wl_c = rmse(obs_calibrate[0], simu_calibrate[0])
+    rmse_wl_v = rmse(obs_validate[0], simu_validate[0])
+    mape_wl_c = mape(obs_calibrate[0], simu_calibrate[0])
+    mape_wl_v = mape(obs_validate[0], simu_validate[0])
+    axes["WLC"].text(0.2, 0.87, f"RMSE={rmse_wl_c:.2f}, MAPE={mape_wl_c:.2f}%", transform=axes["WLC"].transAxes, fontsize=6)
+    axes["WLV"].text(0.05, 0.87, f"RMSE={rmse_wl_v:.2f}, MAPE={mape_wl_v:.2f}%", transform=axes["WLV"].transAxes, fontsize=6)
+
+    axes["WLC"].plot(
+        obs_calibrate[-1],
+        simu_calibrate[0],
+        linewidth=0.75,
+        color="b",
+        label="Simulation",
+    )
+    axes["WLV"].plot(
+        obs_validate[-1],
+        simu_validate[0],
+        linewidth=0.75,
+        color="b",
+        label="Simulation",
+    )
+    axes["RWL"].scatter(obs_calibrate[0], simu_calibrate[0], color="r", s=3)
+    axes["RWL"].scatter(obs_validate[0], simu_validate[0], color='b', s=3, marker='s')
+    axes["RWL"].set_xlim(130, 145)
+    axes["RWL"].set_ylim(130, 145)
+    axes["RWL"].set_aspect(1)
+    nse_c = nse(obs_calibrate[0], simu_calibrate[0])
+    nse_v = nse(obs_validate[0], simu_validate[0])
+    axes["RWL"].text(
+        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RWL"].transAxes, fontsize=6
+    )
+
+    axes["ONC"].plot(obs_calibrate[-1], obs_calibrate[3], "ro", markersize=2)
+    axes["ONV"].plot(obs_validate[-1], obs_validate[3], "ro", markersize=2)
+    axes["ONC"].plot(obs_calibrate[-1], simu_calibrate[3], "b-", linewidth=0.75)
+    axes["ONV"].plot(obs_validate[-1], simu_validate[3], "b-", linewidth=0.75)
+    rmse_on_c = rmse(obs_calibrate[3], simu_calibrate[3])
+    rmse_on_v = rmse(obs_validate[3], simu_validate[3])
+    mape_on_c = mape(obs_calibrate[3], simu_calibrate[3])
+    mape_on_v = mape(obs_validate[3], simu_validate[3])
+    axes["ONC"].text(0.2, 0.87, f"RMSE={rmse_on_c:.2f}, MAPE={mape_on_c:.2f}%", transform=axes["ONC"].transAxes, fontsize=6)
+    axes["ONV"].text(0.05, 0.87, f"RMSE={rmse_on_v:.2f}, MAPE={mape_on_v:.2f}%", transform=axes["ONV"].transAxes, fontsize=6)
+    axes["RON"].scatter(obs_calibrate[3], simu_calibrate[3], color="r", s=3)
+    axes["RON"].scatter(obs_validate[3], simu_validate[3], color="b", s=3, marker="s")
+    axes["RON"].set_xlim(0, 0.4)
+    axes["RON"].set_ylim(0, 0.4)
+    axes["RON"].set_aspect(1)
+    nse_c = nse(obs_calibrate[3], simu_calibrate[3])
+    nse_v = nse(obs_validate[3], simu_validate[3])
+    axes["RON"].text(
+        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RON"].transAxes, fontsize=6
+    )
+
+    axes["ANC"].plot(obs_calibrate[-1], obs_calibrate[4], "ro", markersize=2)
+    axes["ANV"].plot(obs_validate[-1], obs_validate[4], "ro", markersize=2)
+    axes["ANC"].plot(obs_calibrate[-1], simu_calibrate[4], "b-", linewidth=0.75)
+    axes["ANV"].plot(obs_validate[-1], simu_validate[4], "b-", linewidth=0.75)
+    rmse_an_c = rmse(obs_calibrate[4], simu_calibrate[4])
+    rmse_an_v = rmse(obs_validate[4], simu_validate[4])
+    mape_an_c = mape(obs_calibrate[4], simu_calibrate[4])
+    mape_an_v = mape(obs_validate[4], simu_validate[4])
+    axes["ANC"].text(0.2, 0.87, f"RMSE={rmse_an_c:.2f}, MAPE={mape_an_c:.2f}%", transform=axes["ANC"].transAxes, fontsize=6)
+    axes["ANV"].text(0.05, 0.87, f"RMSE={rmse_an_v:.2f}, MAPE={mape_an_v:.2f}%", transform=axes["ANV"].transAxes, fontsize=6)
+    axes["RAN"].scatter(obs_calibrate[4], simu_calibrate[4], color="r", s=3)
+    axes["RAN"].scatter(obs_validate[4], simu_validate[4], color="b", s=3, marker='s')
+    axes["RAN"].set_xlim(0, 0.5)
+    axes["RAN"].set_ylim(0, 0.5)
+    axes["RAN"].set_aspect(1)
+    nse_c = nse(obs_calibrate[4], simu_calibrate[4])
+    nse_v = nse(obs_validate[4], simu_validate[4])
+    axes["RAN"].text(
+        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RAN"].transAxes, fontsize=6
+    )
+
+    axes["NNC"].plot(obs_calibrate[-1], obs_calibrate[5], "ro", markersize=2)
+    axes["NNV"].plot(obs_validate[-1], obs_validate[5], "ro", markersize=2)
+    axes["NNC"].plot(obs_calibrate[-1], simu_calibrate[5], "b-", linewidth=0.75)
+    axes["NNV"].plot(obs_validate[-1], simu_validate[5], "b-", linewidth=0.75)
+    rmse_nn_c = rmse(obs_calibrate[5], simu_calibrate[5])
+    rmse_nn_v = rmse(obs_validate[5], simu_validate[5])
+    mape_nn_c = mape(obs_calibrate[5], simu_calibrate[5])
+    mape_nn_v = mape(obs_validate[5], simu_validate[5])
+    axes["NNC"].text(0.2, 0.87, f"RMSE={rmse_nn_c:.2f}, MAPE={mape_nn_c:.2f}%", transform=axes["NNC"].transAxes, fontsize=6)
+    axes["NNV"].text(0.05, 0.87, f"RMSE={rmse_nn_v:.2f}, MAPE={mape_nn_v:.2f}%", transform=axes["NNV"].transAxes, fontsize=6)
+    axes["RNN"].scatter(obs_calibrate[5], simu_calibrate[5], color="r", s=3)
+    axes["RNN"].scatter(obs_validate[5], simu_validate[5], color="b", s=3, marker='s')
+    axes["RNN"].set_xlim(0, 1.5)
+    axes["RNN"].set_ylim(0, 1.5)
+    # axes['RNN'].xaxis.set_major_locator(axes['RNN'].yaxis.get_major_locator())
+    axes["RNN"].set_aspect(1)
+    nse_c = nse(obs_calibrate[5], simu_calibrate[5])
+    nse_v = nse(obs_validate[5], simu_validate[5])
+    axes["RNN"].text(
+        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RNN"].transAxes, fontsize=6
+    )
+
     return
 
 
@@ -362,8 +540,17 @@ if __name__ == "__main__":
     # 率定测试
     run_model(
         exe_path="build/bin/0DReservoirModel",
-        filein="test/data/0DReservoirModelCalibrate.xlsx",
+        filein="test/data/5-0ResModel-Calibrate.xlsx",
         fileout="test/output/0DRMC_out.xlsx",
+        params=params_dict,
+        id=0,
+        toggle=False,
+    )
+    # 验证测试
+    run_model(
+        exe_path="build/bin/0DReservoirModel",
+        filein="test/data/5-0ResModel-Validate.xlsx",
+        fileout="test/output/0DRMV_out.xlsx",
         params=params_dict,
         id=0,
         toggle=False,
@@ -371,5 +558,6 @@ if __name__ == "__main__":
 
     fig, axes = create_fig()
     obs_calibrate, obs_validate = read_observation()
-    visualize(axes, obs_calibrate, obs_validate)
+    simu_calibrate, simu_validate = read_simulation()
+    visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate)
     fig.show()
