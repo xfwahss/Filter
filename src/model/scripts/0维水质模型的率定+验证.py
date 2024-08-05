@@ -205,7 +205,7 @@ def create_fig(
         fig.axes_dict[key].set_xlim(datetime(2016, 1, 1), datetime(2016, 12, 31))
 
         fig.axes_dict[key].set_xticks(
-            pd.date_range("2015-12-31", "2016-12-31", freq="M")
+            pd.date_range("2015-12-31", "2016-12-31", freq="ME")
         )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
         fig.axes_dict[key].set_xticklabels(
@@ -218,7 +218,7 @@ def create_fig(
         fig.axes_dict[key].set_xlim(datetime(2014, 12, 31), datetime(2015, 12, 31))
 
         fig.axes_dict[key].set_xticks(
-            pd.date_range("2014-12-31", "2015-12-31", freq="M")
+            pd.date_range("2014-12-31", "2015-12-31", freq="ME")
         )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
         fig.axes_dict[key].set_xticklabels(
