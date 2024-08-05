@@ -546,7 +546,7 @@ if __name__ == "__main__":
         fileout="test/output/0DRMC_out.xlsx",
         params=params_dict,
         id=0,
-        toggle=False,
+        toggle=True,
     )
     # 验证测试
     run_model(
@@ -555,7 +555,7 @@ if __name__ == "__main__":
         fileout="test/output/0DRMV_out.xlsx",
         params=params_dict,
         id=0,
-        toggle=False,
+        toggle=True,
     )
 
     fig, axes = create_fig()
