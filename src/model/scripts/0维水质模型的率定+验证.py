@@ -11,6 +11,8 @@ from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
 import numpy as np
 
 styles.use(["wr"])
+calibrate_toggle = True
+validate_toggle = True
 params_dict = {
     #  有机氮参数
     "--b_ndo_flux": 0.056,
@@ -18,12 +20,12 @@ params_dict = {
     "--s_nlp": 0.015,
     "--alpha_rpon": 0.75,
     "--alpha_lpon": 0.15,
-    "--k_rpon": 0.0005,
+    "--k_rpon": 0.005,
     "--theta_rpon": 1.05,
-    "--k_lpon": 0.005,
+    "--k_lpon": 0.01,
     "--theta_lpon": 1.06,
-    "--k_don": 0.048,
-    "--theta_don": 1.05,
+    "--k_don": 0.07,
+    "--theta_don": 1.07,
     # 硝化过程参数
     "--b_amm_flux": 0.00,
     "--rnit0": 0.00135,
@@ -33,7 +35,7 @@ params_dict = {
     "--c_oxo_nit": 12.0,
     "--theta_nit": 1.08,
     "--T_c_nit": 5.5,
-    "--alpha": 0.15,
+    "--alpha": 0.0,
     # 反硝化过程参数
     "--b_nit_flux": 0.00,
     "--rdeni0": 0.0016,
@@ -205,7 +207,7 @@ def create_fig(
         fig.axes_dict[key].set_xlim(datetime(2016, 1, 1), datetime(2016, 12, 31))
 
         fig.axes_dict[key].set_xticks(
-            pd.date_range("2015-12-31", "2016-12-31", freq="ME")
+            pd.date_range("2015-12-31", "2016-12-31", freq="M")
         )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
         fig.axes_dict[key].set_xticklabels(
@@ -218,7 +220,7 @@ def create_fig(
         fig.axes_dict[key].set_xlim(datetime(2014, 12, 31), datetime(2015, 12, 31))
 
         fig.axes_dict[key].set_xticks(
-            pd.date_range("2014-12-31", "2015-12-31", freq="ME")
+            pd.date_range("2014-12-31", "2015-12-31", freq="M")
         )
         fig.axes_dict[key].xaxis.set_major_formatter(DateFormatter("%m-%d"))
         fig.axes_dict[key].set_xticklabels(
@@ -335,7 +337,35 @@ def create_fig(
 
 def read_observation():
     obs_dataset = pd.read_excel(
-        "test/data/2-0维水质模型数据未插值+环境因子样条曲线插值+剔除异常值平均.xlsx",
+        "test/data/5-0ResModel-Calibrate.xlsx",
+        sheet_name="ResAverage",
+    )
+    calibrate_range = slice(0, 365, 1)
+    obs_wl, obs_T_init, obs_DO_init, obs_T, obs_DO, obs_Con, obs_Can, obs_Cnn, index = (
+        obs_dataset["Water_Level"],
+        obs_dataset["Res_T_init"],
+        obs_dataset["Res_DO_init"],
+        obs_dataset["Res_T"],
+        obs_dataset["Res_DO"],
+        obs_dataset["Res_Cno"],
+        obs_dataset["Res_Cna"],
+        obs_dataset["Res_Cnn"],
+        obs_dataset["Date"],
+    )
+    obs_calibrate = [
+        obs_wl[calibrate_range].values,
+        obs_T_init[calibrate_range].values,
+        obs_DO_init[calibrate_range].values,
+        obs_Con[calibrate_range].values,
+        obs_Can[calibrate_range].values,
+        obs_Cnn[calibrate_range].values,
+        obs_T[calibrate_range].values,
+        obs_DO[calibrate_range].values,
+        index[calibrate_range].values,
+    ]
+
+    obs_dataset = pd.read_excel(
+        "test/data/5-0ResModel-Validate.xlsx",
         sheet_name="ResAverage",
     )
     obs_wl, obs_T_init, obs_DO_init, obs_T, obs_DO, obs_Con, obs_Can, obs_Cnn, index = (
@@ -349,19 +379,7 @@ def read_observation():
         obs_dataset["Res_Cnn"],
         obs_dataset["Date"],
     )
-    calibrate_range = slice(0, 365, 1)
-    validate_range = slice(365, 731, 1)
-    obs_calibrate = [
-        obs_wl[calibrate_range].values,
-        obs_T_init[calibrate_range].values,
-        obs_DO_init[calibrate_range].values,
-        obs_Con[calibrate_range].values,
-        obs_Can[calibrate_range].values,
-        obs_Cnn[calibrate_range].values,
-        obs_T[calibrate_range].values,
-        obs_DO[calibrate_range].values,
-        index[calibrate_range].values,
-    ]
+    validate_range = slice(0, 366, 1)
     obs_validate = [
         obs_wl[validate_range].values,
         obs_T_init[validate_range].values,
@@ -472,9 +490,15 @@ def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     )
 
     axes["ONC"].plot(obs_calibrate[-1], obs_calibrate[3], "ro", markersize=2)
-    axes["ONV"].plot(obs_validate[-1], obs_validate[3], "ro", markersize=2)
     axes["ONC"].plot(obs_calibrate[-1], simu_calibrate[3], "b-", linewidth=0.75)
+    axes["ONC"].plot(obs_calibrate[-1], simu_calibrate[1], color="grey", linestyle='-', lw=0.5)
+    axes["ONC"].plot(obs_calibrate[-1], simu_calibrate[2], color="k", linestyle='-', lw=0.5)
+
+    axes["ONV"].plot(obs_validate[-1], obs_validate[3], "ro", markersize=2)
     axes["ONV"].plot(obs_validate[-1], simu_validate[3], "b-", linewidth=0.75)
+    axes["ONV"].plot(obs_validate[-1], simu_validate[1], color="grey", linestyle='-', lw=0.5)
+    axes["ONV"].plot(obs_validate[-1], simu_validate[2], color="k", linestyle='-', lw=0.5)
+
     rmse_on_c = rmse(obs_calibrate[3], simu_calibrate[3])
     rmse_on_v = rmse(obs_validate[3], simu_validate[3])
     mape_on_c = mape(obs_calibrate[3], simu_calibrate[3])
@@ -546,7 +570,7 @@ if __name__ == "__main__":
         fileout="test/output/0DRMC_out.xlsx",
         params=params_dict,
         id=0,
-        toggle=True,
+        toggle=calibrate_toggle,
     )
     # 验证测试
     run_model(
@@ -555,7 +579,7 @@ if __name__ == "__main__":
         fileout="test/output/0DRMV_out.xlsx",
         params=params_dict,
         id=0,
-        toggle=True,
+        toggle=validate_toggle,
     )
 
     fig, axes = create_fig()
