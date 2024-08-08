@@ -13,19 +13,22 @@ import numpy as np
 styles.use(["wr"])
 calibrate_toggle = True
 validate_toggle = True
+total = 0.35
+lpon = 0.10
+v_rlp = 0.05
 params_dict = {
     #  有机氮参数
-    "--b_ndo_flux": 0.056,
-    "--s_nrp": 0.015,
-    "--s_nlp": 0.015,
-    "--alpha_rpon": 0.75,
-    "--alpha_lpon": 0.15,
-    "--k_rpon": 0.005,
-    "--theta_rpon": 1.05,
-    "--k_lpon": 0.01,
-    "--theta_lpon": 1.06,
-    "--k_don": 0.07,
-    "--theta_don": 1.07,
+    "--b_ndo_flux": 0.089,
+    "--s_nrp": v_rlp,
+    "--s_nlp": v_rlp,
+    "--alpha_rpon": total - lpon,
+    "--alpha_lpon": lpon,
+    "--k_rpon": 0.001,
+    "--theta_rpon": 1.10,
+    "--k_lpon": 0.012,
+    "--theta_lpon": 1.03,
+    "--k_don": 0.047,
+    "--theta_don": 1.044,
     # 硝化过程参数
     "--b_amm_flux": 0.00,
     "--rnit0": 0.00135,
