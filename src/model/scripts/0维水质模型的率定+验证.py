@@ -11,45 +11,42 @@ from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
 import numpy as np
 
 styles.use(["wr"])
-calibrate_toggle = True
-validate_toggle = True
-total = 0.35
-lpon = 0.10
-v_rlp = 0.05
+calibrate_toggle = False
+validate_toggle = False
 params_dict = {
     #  有机氮参数
-    "--b_ndo_flux": 0.089,
-    "--s_nrp": v_rlp,
-    "--s_nlp": v_rlp,
-    "--alpha_rpon": total - lpon,
-    "--alpha_lpon": lpon,
+    "--b_ndo_flux": 0.040,
+    "--s_nrp": 0.06,
+    "--s_nlp": 0.05,
+    "--alpha_rpon": 0.50,
+    "--alpha_lpon": 0.25,
     "--k_rpon": 0.001,
-    "--theta_rpon": 1.10,
-    "--k_lpon": 0.012,
-    "--theta_lpon": 1.03,
-    "--k_don": 0.047,
-    "--theta_don": 1.044,
+    "--theta_rpon": 1.05,
+    "--k_lpon": 0.014,
+    "--theta_lpon": 1.040,
+    "--k_don": 0.059,
+    "--theta_don": 1.042,
     # 硝化过程参数
-    "--b_amm_flux": 0.00,
-    "--rnit0": 0.00135,
-    "--knit20": 0.012,
-    "--foxmin": 0.25,
-    "--c_oxc_nit": 6.0,
-    "--c_oxo_nit": 12.0,
-    "--theta_nit": 1.08,
-    "--T_c_nit": 5.5,
+    "--b_amm_flux": 0.005,
+    "--rnit0": 0.0026,
+    "--knit20": 0.038,
+    "--foxmin": 0.1,
+    "--c_oxc_nit": 4.5,
+    "--c_oxo_nit": 15.0,
+    "--theta_nit": 1.018,
+    "--T_c_nit": 4.5,
     "--alpha": 0.0,
     # 反硝化过程参数
     "--b_nit_flux": 0.00,
-    "--rdeni0": 0.0016,
-    "--kdeni20": 0.010,
+    "--rdeni0": 0.0033,
+    "--kdeni20": 0.021,
     "--Tc_deni": -2,
-    "--theta_deni": 1.20,
+    "--theta_deni": 1.11,
     "--c_oxc_deni": 10,
     "--c_oxo_deni": 3,
     "--beta": 1,
     # 其他参数
-    "--h0": 100,
+    "--h0": 122,
 }
 
 
@@ -84,6 +81,9 @@ def skip_na(obs, simu):
     comb_skipna = comb[~np.isnan(comb).any(axis=1)]
     return comb_skipna[:, 0], comb_skipna[:, 1]
 
+def r2(obs, simu):
+    obs, simu = skip_na(obs, simu)
+    return np.corrcoef(obs, simu)[0, 1]
 
 def nse(obs, simu):
     obs, simu = skip_na(obs, simu)
@@ -198,8 +198,8 @@ def create_fig(
     fig.axes_dict["WLV"].set_ylim(130, 145)
     fig.axes_dict["ONC"].set_ylim(0, 0.40)
     fig.axes_dict["ONV"].set_ylim(0, 0.40)
-    fig.axes_dict["ANC"].set_ylim(0, 0.50)
-    fig.axes_dict["ANV"].set_ylim(0, 0.50)
+    fig.axes_dict["ANC"].set_ylim(0, 0.30)
+    fig.axes_dict["ANV"].set_ylim(0, 0.30)
 
     fig.axes_dict["NNC"].set_ylim(0.00, 1.50)
     fig.axes_dict["NNV"].set_ylim(0.00, 1.50)
@@ -486,10 +486,10 @@ def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     axes["RWL"].set_xlim(130, 145)
     axes["RWL"].set_ylim(130, 145)
     axes["RWL"].set_aspect(1)
-    nse_c = nse(obs_calibrate[0], simu_calibrate[0])
-    nse_v = nse(obs_validate[0], simu_validate[0])
+    nse_c = r2(obs_calibrate[0], simu_calibrate[0])
+    nse_v = r2(obs_validate[0], simu_validate[0])
     axes["RWL"].text(
-        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RWL"].transAxes, fontsize=6
+        0.02, 0.62, f"$\\rho_c$={nse_c:.4f}\n$\\rho_v$={nse_v:.4f}", transform=axes["RWL"].transAxes, fontsize=6
     )
 
     axes["ONC"].plot(obs_calibrate[-1], obs_calibrate[3], "ro", markersize=2)
@@ -513,10 +513,10 @@ def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     axes["RON"].set_xlim(0, 0.4)
     axes["RON"].set_ylim(0, 0.4)
     axes["RON"].set_aspect(1)
-    nse_c = nse(obs_calibrate[3], simu_calibrate[3])
-    nse_v = nse(obs_validate[3], simu_validate[3])
+    nse_c = r2(obs_calibrate[3], simu_calibrate[3])
+    nse_v = r2(obs_validate[3], simu_validate[3])
     axes["RON"].text(
-        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RON"].transAxes, fontsize=6
+        0.02, 0.62, f"$\\rho_c$={nse_c:.4f}\n$\\rho_v$={nse_v:.4f}", transform=axes["RON"].transAxes, fontsize=6
     )
 
     axes["ANC"].plot(obs_calibrate[-1], obs_calibrate[4], "ro", markersize=2)
@@ -531,13 +531,13 @@ def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     axes["ANV"].text(0.05, 0.87, f"RMSE={rmse_an_v:.2f}, MAPE={mape_an_v:.2f}%", transform=axes["ANV"].transAxes, fontsize=6)
     axes["RAN"].scatter(obs_calibrate[4], simu_calibrate[4], color="r", s=3)
     axes["RAN"].scatter(obs_validate[4], simu_validate[4], color="b", s=3, marker='s')
-    axes["RAN"].set_xlim(0, 0.5)
-    axes["RAN"].set_ylim(0, 0.5)
+    axes["RAN"].set_xlim(0, 0.3)
+    axes["RAN"].set_ylim(0, 0.3)
     axes["RAN"].set_aspect(1)
-    nse_c = nse(obs_calibrate[4], simu_calibrate[4])
-    nse_v = nse(obs_validate[4], simu_validate[4])
+    nse_c = r2(obs_calibrate[4], simu_calibrate[4])
+    nse_v = r2(obs_validate[4], simu_validate[4])
     axes["RAN"].text(
-        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RAN"].transAxes, fontsize=6
+        0.02, 0.62, f"$\\rho_c$={nse_c:.4f}\n$\\rho_v$={nse_v:.4f}", transform=axes["RAN"].transAxes, fontsize=6
     )
 
     axes["NNC"].plot(obs_calibrate[-1], obs_calibrate[5], "ro", markersize=2)
@@ -556,10 +556,10 @@ def visualize(axes, obs_calibrate, obs_validate, simu_calibrate, simu_validate):
     axes["RNN"].set_ylim(0, 1.5)
     # axes['RNN'].xaxis.set_major_locator(axes['RNN'].yaxis.get_major_locator())
     axes["RNN"].set_aspect(1)
-    nse_c = nse(obs_calibrate[5], simu_calibrate[5])
-    nse_v = nse(obs_validate[5], simu_validate[5])
+    nse_c = r2(obs_calibrate[5], simu_calibrate[5])
+    nse_v = r2(obs_validate[5], simu_validate[5])
     axes["RNN"].text(
-        0.02, 0.62, f"$NSE_c$={nse_c:.4f}\n$NSE_v$={nse_v:.4f}", transform=axes["RNN"].transAxes, fontsize=6
+        0.02, 0.62, f"$\\rho_c$={nse_c:.4f}\n$\\rho_v$={nse_v:.4f}", transform=axes["RNN"].transAxes, fontsize=6
     )
 
     return
