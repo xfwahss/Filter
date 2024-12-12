@@ -162,7 +162,7 @@ if __name__ == "__main__":
     axes["L"].xaxis.set_visible(False)
     axes["L"].yaxis.set_visible(False)
 
-    data = pd.read_excel("test/data/SensitivityModelRunResults.xlsx")
+    data = pd.read_excel("test/data/SensitivityModelRunResults2.xlsx")
     ts, fs, ss = sensitivity_analysis(data, 4, -10000, 1)
 
     x = np.arange(ts.shape[0])
