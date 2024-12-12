@@ -74,7 +74,7 @@ def run_model(exe, toggle=True):
     cwd = os.getcwd()
     os.chdir(os.path.abspath('build'))
     if toggle:
-        subprocess.run([exe])
+        subprocess.run([exe, '-i', '../test/data/Degradation_in.xlsx', '-o', '../test/output/Degradation_out.xlsx'])
     os.chdir(cwd)
 
 
