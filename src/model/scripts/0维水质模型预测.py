@@ -29,7 +29,7 @@ params_dict = {
     # 硝化过程参数
     "--b_amm_flux": 0.005,
     "--rnit0": 0.0026, #0.0026
-    "--knit20": 0.0038, # 0.038
+    "--knit20": 0.038, # 0.038
     "--foxmin": 0.1,
     "--c_oxc_nit": 4.5,
     "--c_oxo_nit": 15,
@@ -39,7 +39,7 @@ params_dict = {
     # 反硝化过程参数
     "--b_nit_flux": 0.00,
     "--rdeni0": 0.0033, # 0.0033
-    "--kdeni20": 0.0021,#0.021
+    "--kdeni20": 0.021,#0.021
     "--Tc_deni": -2,
     "--theta_deni": 1.11,
     "--c_oxc_deni": 10.0,
@@ -320,8 +320,3 @@ if __name__ == "__main__":
     vplot(ax34, '2020-01-01', '2020-12-30', data_obs, data_simu, 'AN')
     vplot(ax44, '2020-01-01', '2020-12-30', data_obs, data_simu, 'NN')
     fig4.show()
-
-    fig.savefig('2017.jpg', dpi=500)
-    fig2.savefig('2018.jpg', dpi=500)
-    fig3.savefig('2019.jpg', dpi=500)
-    fig4.savefig('2020.jpg', dpi=500)
