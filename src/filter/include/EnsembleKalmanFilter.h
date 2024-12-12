@@ -164,11 +164,22 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
 }
 
 template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
-    Eigen::MatrixXd K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
-    X                 = X + K * (z - H * X);
-    P                 = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
-    // 记录观测值和真实值的差异
-    diff_obs_prior    = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
+    bool flag = true;
+    for (int i = 0; i < z.size(); i++) {
+        if (z(i) == -999.0) {
+            flag = false;
+            break;
+        }
+    }
+    if (flag) {
+        Eigen::MatrixXd K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
+        X                 = X + K * (z - H * X);
+        P                 = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
+        // 记录观测值和真实值的差异
+        diff_obs_prior    = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
+    } else {
+        diff_obs_prior = Eigen::VectorXd::Zero(X.size());
+    }
     // diff_obs_prior = umath::re(z, R, H*X, H * P * H.transpose(), seed);
     Logger::log_vectorxd("RE: {}", diff_obs_prior, "Ensemble RE");
 }
