@@ -40,10 +40,16 @@ class ModelIO : public FilterIO {
         Eigen::MatrixXd m(ReservoirData.rows(), ReservoirData.cols() + 2);
         for (int i = 0; i < m.rows(); i++) {
             Eigen::RowVectorXd newm(m.cols());
-            newm(0)  = ReservoirData(i, 0);
-            newm(1)  = ReservoirData(i, 1) * params_dict["rpon_ratio"];
-            newm(2)  = ReservoirData(i, 1) * params_dict["lpon_ratio"];
-            newm(3)  = ReservoirData(i, 1) - newm(1) - newm(2);
+            newm(0) = ReservoirData(i, 0);
+            if (ReservoirData(i, 1) == -999.0) {
+                newm(1) = -999.0;
+                newm(2) = -999.0;
+                newm(3) = -999.0;
+            } else {
+                newm(1) = ReservoirData(i, 1) * params_dict["rpon_ratio"];
+                newm(2) = ReservoirData(i, 1) * params_dict["lpon_ratio"];
+                newm(3) = ReservoirData(i, 1) - newm(1) - newm(2);
+            }
             newm(4)  = ReservoirData(i, 2);
             newm(5)  = ReservoirData(i, 3);
             newm(6)  = ReservoirData(i, 4);
@@ -66,13 +72,18 @@ class ModelIO : public FilterIO {
     Eigen::VectorXd model_params;
     Eigen::MatrixXd BndForce;
     Eigen::MatrixXd Updated_X;
+    Eigen::MatrixXd Updated_P;
     int index = 0;
-    ModelIO(std::string &filename_in, std::string &filename_out) : FilterIO(filename_in, filename_out) {
+    ModelIO(std::string &filename_in, std::string &filename_out, int mode = -1) : FilterIO(filename_in, filename_out) {
         logger::get()->info("Reading data from: {}", filename_in);
         params_dict = FilterIO::get_params("Params", 1, 2, 1);
-        int status_dims, mode;
-        mode = params_dict["mode"];
-        logger::get()->info("Identify the running mode is {}", params_dict["mode"]);
+        if (mode == -1) {
+            mode = params_dict["mode"];
+        } else {
+            params_dict["mode"] = mode;
+        }
+        int status_dims;
+        Logger::get()->info("Current operation mode is: {}", params_dict["mode"]);
         switch (mode) {
         case 1:
             status_dims = params_dict["wq_status_num"];
@@ -87,30 +98,36 @@ class ModelIO : public FilterIO {
             break;
         }
         params_dict["status_dims"] = status_dims;
-        P            = FilterIO::get_init_P("Init_P", 2, 2, params_dict["status_dims"]);
-        X            = FilterIO::get_init_X("Init_X", 2, 1, params_dict["status_dims"]);
-        H            = FilterIO::get_H("H", 2, 2, params_dict["obs_dims"], params_dict["status_dims"]);
-        Q            = FilterIO::get_Q("Q", 2, 1, params_dict["status_dims"]);
-        R            = FilterIO::get_init_P("R", 2, 2, params_dict["obs_dims"]);
-        model_params = FilterIO::get_init_X("ModelParams", 2, 1, params_dict["model_params_num"]);
-        RiversInData =
-            FilterIO::get_matrix("Rivers_in", 2, 2, params_dict["measurement_nums"], params_dict["riversin_nums"] * params_dict["river_monitor_num"]);
-        RiversOutData =
-            FilterIO::get_matrix("Rivers_out", 2, 2, params_dict["measurement_nums"], params_dict["riversout_nums"] * params_dict["river_monitor_num"]);
+        P                          = FilterIO::get_init_P("Init_P", 2, 2, params_dict["status_dims"]);
+        X                          = FilterIO::get_init_X("Init_X", 2, 1, params_dict["status_dims"]);
+        H                          = FilterIO::get_H("H", 2, 2, params_dict["obs_dims"], params_dict["status_dims"]);
+        Q                          = FilterIO::get_Q("Q", 2, 1, params_dict["status_dims"]);
+        R                          = FilterIO::get_init_P("R", 2, 2, params_dict["obs_dims"]);
+        model_params               = FilterIO::get_init_X("ModelParams", 2, 1, params_dict["model_params_num"]);
+        RiversInData               = FilterIO::get_matrix("Rivers_in", 2, 2, params_dict["measurement_nums"],
+                                                          params_dict["riversin_nums"] * params_dict["river_monitor_num"]);
+        RiversOutData              = FilterIO::get_matrix("Rivers_out", 2, 2, params_dict["measurement_nums"],
+                                                          params_dict["riversout_nums"] * params_dict["river_monitor_num"]);
         ReservoirData =
             FilterIO::get_matrix("ResAvg", 2, 2, params_dict["measurement_nums"], params_dict["reservoir_col"]);
         this->fill_forward(RiversInData);
         this->fill_forward(RiversOutData);
-        this->fill_forward(ReservoirData);
+        // this->fill_forward(ReservoirData); // 水库数据不能填充，是用来同化的
         BndForce = Eigen::MatrixXd(static_cast<int>(params_dict["measurement_nums"]), 30);
         get_bnd_force(BndForce);
         this->transform_data(); // 将水库观测数据转化为同化格式
         Updated_X = Eigen::MatrixXd::Zero(params_dict["measurement_nums"], params_dict["status_dims"]);
+        Updated_P = Eigen::MatrixXd::Zero(params_dict["measurement_nums"], params_dict["status_dims"]);
     };
     void write_X() {
         FilterIO::write_headers();
         for (int i = 0; i < Updated_X.rows(); i++) {
             FilterIO::write_x(Updated_X.row(i), "X", i + 2, 2);
+        }
+    }
+    void write_P() {
+        for (int i = 0; i < Updated_P.rows(); i++) {
+            FilterIO::write_x(Updated_P.row(i), "P", i + 2, 2);
         }
     }
     ~ModelIO(){};
@@ -130,7 +147,8 @@ class MechanismUpdate {
 
   public:
     ModelIO mio;
-    MechanismUpdate(std::string &filename_in, std::string &filename_out) : mio(filename_in, filename_out) {
+    MechanismUpdate(std::string &filename_in, std::string &filename_out, int mode = -1)
+        : mio(filename_in, filename_out, mode) {
         ReservoirSystem::init_system(mio.params_dict["riversin_nums"], mio.params_dict["riversout_nums"]);
         double h0                                             = mio.params_dict["h0"];
         std::function<double(const double &)> wl_to_depth_set = [this, &h0](const double &wl) -> double {
@@ -149,6 +167,7 @@ class Model : public EnsembleModel {
   public:
     static MechanismUpdate *mu;
     Eigen::VectorXd predict(const double &dt, const Eigen::VectorXd &status) {
+        // std::cout << "Before:  " << status.transpose() << std::endl;
         int mode = mu->mio.params_dict["mode"];
         Eigen::VectorXd next_status(status.size());
         Eigen::VectorXd wq_status, param_status, next_wq, next_param; // 只有在同化水质和参数时才使用
@@ -156,6 +175,9 @@ class Model : public EnsembleModel {
         case 1:
             // 仅同化水质状态
             next_status = mu->predict(status, mu->mio.BndForce.row(mu->mio.index), mu->mio.model_params, dt);
+            for (int i = 0; i < next_status.size(); i++) {
+                next_status(i) = std::max(next_status(i), 0.0);
+            }
             break;
         case 2:
             // 同化水质状态和水质参数
@@ -170,8 +192,10 @@ class Model : public EnsembleModel {
             // 基于刺激-响应的参数同化框架
             break;
         default:
+            throw std::logic_error("Wrong mode, please select 1, 2, or 3");
             break;
         }
+        // std::cout << "After:  " << next_status.transpose() << std::endl;
         return next_status;
     };
 };
@@ -179,9 +203,11 @@ MechanismUpdate *Model::mu = nullptr;
 
 int main(int argc, char *argv[]) {
     std::string filename_in, filename_out;
+    int mode;
     args::ArgumentParser parser("1stOrderReactionParameterTracker", "END");
     args::ValueFlag<std::string> fi(parser, "filein", "file input", {'i'});
     args::ValueFlag<std::string> fo(parser, "fileout", "file output", {'o'});
+    args::ValueFlag<std::string> mode_p(parser, "mode", "mode selection", {'m'});
     try {
         parser.ParseCLI(argc, argv);
     } catch (args::Help) {
@@ -199,18 +225,41 @@ int main(int argc, char *argv[]) {
     if (fo) {
         filename_out = args::get(fo);
     }
-    // filename_in  = "test/data/ModelIntegrate.xlsx";
-    // filename_out = "test/output/ModelIntegrate_out.xlsx";
-    MechanismUpdate mu(filename_in, filename_out);
-    Model::mu = &mu;
-    EnsembleKalmanFilter<Model> enf(mu.mio.params_dict["size"]);
-    enf.init(mu.mio.X, mu.mio.P, mu.mio.H, mu.mio.Q, 0, false);
-    for (int i = 0; i < mu.mio.params_dict["measurement_nums"]; i++) {
-        mu.mio.index = i;
-        enf.step_assimilation(mu.mio.params_dict["dt"], mu.mio.ReservoirData.row(mu.mio.index), mu.mio.R);
-        logger::get("console")->info("processing index: {}", i);
-        mu.mio.Updated_X.row(i) = enf.status().transpose();
+    if (mode_p) {
+        mode = std::stoi(std::string(args::get(mode_p)));
     }
-    mu.mio.write_X();
+
+    MechanismUpdate mu(filename_in, filename_out, mode);
+    if (mode != 0) {
+        Model::mu = &mu;
+        EnsembleKalmanFilter<Model> enf(mu.mio.params_dict["size"]);
+        bool enable_pos;
+        if (mu.mio.params_dict["enable_pos"] == 1) {
+            enable_pos = true;
+        } else {
+            enable_pos = false;
+        }
+        enf.init(mu.mio.X, mu.mio.P, mu.mio.H, mu.mio.Q, 0, enable_pos);
+        for (int i = 0; i < mu.mio.params_dict["measurement_nums"]; i++) {
+            Logger::get("console")->info("processing index: {}", i);
+            mu.mio.index = i;
+            enf.step_assimilation(mu.mio.params_dict["dt"] * 86400, mu.mio.ReservoirData.row(mu.mio.index), mu.mio.R);
+            mu.mio.Updated_X.row(i) = enf.status().transpose();
+            for (int j = 0; j < mu.mio.X.size(); j++) {
+                mu.mio.Updated_P(i, j) = enf.covariance()(j, j);
+            }
+        }
+        mu.mio.write_X();
+        mu.mio.write_P();
+    } else {
+        Eigen::VectorXd cur = mu.mio.ReservoirData.row(0);
+        for (int i = 0; i < mu.mio.params_dict["measurement_nums"]; i++) {
+            mu.mio.Updated_X.row(i) = cur;
+            Logger::get("console")->info("processing index: {}", i);
+            std::cout << mu.mio.BndForce.row(i) << std::endl;
+            cur = mu.predict(cur, mu.mio.BndForce.row(i), mu.mio.model_params, mu.mio.params_dict["dt"] * 86400);
+        }
+        mu.mio.write_X();
+    }
     return 0;
 }

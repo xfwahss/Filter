@@ -165,10 +165,12 @@ template <class T> void EnsembleKalmanFilter<T>::predict(const double &dt) {
 
 template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen::MatrixXd R) {
     bool flag = true;
+    Eigen::MatrixXd RCalc = R;
     for (int i = 0; i < z.size(); i++) {
         if (z(i) == -999.0) {
+            z(i) = 0;
             flag = false;
-            break;
+            RCalc(i, i) = 100000000000;
         }
     }
     if (flag) {
@@ -178,6 +180,9 @@ template <class T> void EnsembleKalmanFilter<T>::update(Eigen::VectorXd z, Eigen
         // 记录观测值和真实值的差异
         diff_obs_prior    = 0.5 * (z - H * X).array() / z.array() + 0.5 * (z - H * X).array() / (H * X).array();
     } else {
+        Eigen::MatrixXd K = P * H.transpose() * (H * P * H.transpose() + RCalc).inverse();
+        X                 = X + K * (z - H * X);
+        P                 = (Eigen::MatrixXd::Identity(P.rows(), P.cols()) - K * H) * P;
         diff_obs_prior = Eigen::VectorXd::Zero(X.size());
     }
     // diff_obs_prior = umath::re(z, R, H*X, H * P * H.transpose(), seed);

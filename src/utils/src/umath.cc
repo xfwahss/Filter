@@ -1,5 +1,6 @@
 #include <random>
 #include <umath.h>
+#include <algorithm>
 
 bool umath::is_positive(const Eigen::VectorXd &value) {
     int nums = value.size();
@@ -75,17 +76,11 @@ Eigen::VectorXd umath::pos_multi_gauss_random(Eigen::VectorXd &mean, Eigen::Matr
                                               const unsigned int &seed) {
     int count                     = 0;
     Eigen::VectorXd random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
-    Logger::get("console")->enable_backtrace(5);
-    while ((!is_positive(random_vector)) && count < 100) {
-        random_vector = umath::multivariate_gaussian_random(mean, covariance, seed);
-        Logger::log_vectorxd("random vector:{}", random_vector);
-        count++;
+    for(int i=0; i<random_vector.size(); i++){
+        if(random_vector(i) < 0){
+            random_vector(i) = std::max(mean(i) * 2 - random_vector(i), 0.0);
+        }
     }
-    if (count == 100) {
-        Logger::get()->warn("Negative random vector was generated!");
-        Logger::get()->dump_backtrace();
-    }
-
     return random_vector;
 }
 
